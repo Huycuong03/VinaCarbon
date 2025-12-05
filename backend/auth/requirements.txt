@@ -1,0 +1,5 @@
+fastapi 
+uvicorn 
+authlib 
+python-jose[cryptography]
+pydantic-settings
