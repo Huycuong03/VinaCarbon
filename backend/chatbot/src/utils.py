@@ -1,3 +1,19 @@
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from src.settings import SETTINGS
+
+
+def verify_internal_token(token: str = Depends(OAuth2PasswordBearer("token"))):
+    try:
+        data = jwt.decode(token, SETTINGS.jwt_public_key, SETTINGS.jwt_algorithm)
+        return data
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token"
+        )
+
+
 THREADS: dict[str, dict[str, str]] = {}
 
 

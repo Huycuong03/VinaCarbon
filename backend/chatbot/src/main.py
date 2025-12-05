@@ -1,13 +1,13 @@
 from azure.ai.agents.aio import AgentsClient
 from azure.ai.agents.models import MessageRole
 from azure.identity.aio import DefaultAzureCredential
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from microsoft_agents.authentication.msal import MsalConnectionManager
 from microsoft_agents.hosting.core import AuthTypes, MemoryStorage, TurnContext
 from microsoft_agents.hosting.core.app import AgentApplication
 from microsoft_agents.hosting.fastapi import CloudAdapter, start_agent_process
 from src.settings import SETTINGS
-from src.utils import get_thread_id, set_thread_id
+from src.utils import get_thread_id, set_thread_id, verify_internal_token
 
 aif_client = AgentsClient(
     endpoint=SETTINGS.aif_project_endpoint,
@@ -29,7 +29,7 @@ app = FastAPI()
 
 
 @app.post("/api/messages")
-async def messages(request: Request):
+async def messages(request: Request, user=Depends(verify_internal_token)):
     return await start_agent_process(request, agent_app, adapter)
 
 
