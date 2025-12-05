@@ -1,5 +1,5 @@
 from fastapi import Depends, FastAPI, HTTPException
-from src.utils import create_internal_token, verify_google_token, verify_internal_token
+from src.utils import create_internal_token, verify_google_token
 
 app = FastAPI()
 
@@ -11,11 +11,3 @@ async def login(user=Depends(verify_google_token)):
     token = create_internal_token(user)
 
     return {"token": token}
-
-
-@app.get("/auth")
-async def authenticate(user=Depends(verify_internal_token)):
-    if user is None:
-        raise HTTPException(status_code=401, detail="Unauthenticated")
-
-    return user
