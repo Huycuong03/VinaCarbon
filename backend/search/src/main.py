@@ -1,32 +1,41 @@
-import os
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType, SearchMode
+from fastapi import FastAPI
+from src.settings import SETTINGS
+from src.utils import aggregate_search_hits
 
-from azure.ai.agents import AgentsClient
-from azure.ai.agents.models import FilePurpose, FileSearchTool
-from azure.identity import DefaultAzureCredential
-
-agents_client = AgentsClient(
-    endpoint="https://vinacarbon-foundry.services.ai.azure.com/api/projects/first-project",
-    credential=DefaultAzureCredential(),
+search_client = SearchClient(
+    SETTINGS.search_endpoint,
+    SETTINGS.index_name,
+    AzureKeyCredential(SETTINGS.search_key),
 )
 
-file = agents_client.files.upload_and_poll(
-    file_path="C:/Users/caohu/Downloads/VTN and Partners - Tín chỉ Carbon và Thị trường Carbon theo Pháp luật Việt Nam.pdf",
-    purpose=FilePurpose.AGENTS,
-)
-print(f"Uploaded file, file ID: {file.id}")
+app = FastAPI()
 
-vector_store = agents_client.vector_stores.create_and_poll(
-    file_ids=[file.id], name="my_vectorstore"
-)
-print(f"Created vector store, vector store ID: {vector_store.id}")
 
-file_search = FileSearchTool(vector_store_ids=[vector_store.id])
+@app.get("/")
+async def search(query: str, page: int = 1, page_size: int = 10):
+    hits = search_client.search(
+        query,
+        query_type=QueryType.SIMPLE,
+        search_mode=SearchMode.ANY,
+    )
 
-agent = agents_client.create_agent(
-    model=os.environ["MODEL_DEPLOYMENT_NAME"],
-    name="my-agent",
-    instructions="Hello, you are helpful agent and can search information from uploaded files",
-    tools=file_search.definitions,
-    tool_resources=file_search.resources,
-)
-print(f"Created agent, agent ID: {agent.id}")
+    documents = aggregate_search_hits(hits)
+
+    total_results = len(documents)
+    total_pages = (total_results + page_size - 1) // page_size
+
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated = documents[start:end]
+
+    return {
+        "query": query,
+        "page": page,
+        "page_size": page_size,
+        "total_results": total_results,
+        "total_pages": total_pages,
+        "results": paginated,
+    }
