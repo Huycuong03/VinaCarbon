@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+aiohttp
+pydantic-settings
+azure-search-documents
+azure-ai-agents
+azure-identity
+microsoft-agents-hosting-fastapi
+microsoft-agents-authentication-msal
