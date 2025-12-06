@@ -1,5 +1,0 @@
-fastapi 
-uvicorn 
-pydantic-settings
-google-auth
-python-jose[cryptography]

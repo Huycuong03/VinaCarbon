@@ -2,9 +2,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    jwt_public_key: str
-    jwt_algorithm: str
-
     cache_maxsize: int
     cache_ttl: int
 

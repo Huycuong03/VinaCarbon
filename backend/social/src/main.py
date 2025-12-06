@@ -6,7 +6,7 @@ from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceNotFo
 from cachetools import TTLCache
 from fastapi import Depends, FastAPI, HTTPException, status
 from src.settings import SETTINGS
-from src.utils import clean_document, construct_query, verify_internal_token
+from src.utils import clean_document, construct_query
 
 database = CosmosClient(
     SETTINGS.cosmos_endpoint, SETTINGS.cosmos_key
@@ -18,9 +18,7 @@ app = FastAPI()
 
 
 @app.post("/{container_name}", status_code=status.HTTP_204_NO_CONTENT)
-def create_document(
-    container_name: str, document: dict, user=Depends(verify_internal_token)
-):
+def create_document(container_name: str, document: dict):
     try:
         container = database.get_container_client(container_name)
         container.create_item(document)
@@ -32,10 +30,7 @@ def create_document(
 
 @app.get("/{container_name}")
 def get_all_documents(
-    container_name: str,
-    page_size: int,
-    continuation: str | None = None,
-    user=Depends(verify_internal_token),
+    container_name: str, page_size: int, continuation: str | None = None
 ):
     try:
         continuation = unquote(continuation) if continuation else None
@@ -73,9 +68,7 @@ def get_all_documents(
 
 
 @app.get("/{container_name}/{document_id}")
-def find_document_by_id(
-    container_name: str, document_id: str, user=Depends(verify_internal_token)
-):
+def find_document_by_id(container_name: str, document_id: str):
     try:
         container = database.get_container_client(container_name)
         document = container.read_item(item=document_id, partition_key=document_id)
@@ -93,7 +86,6 @@ def query_documents(
     query_params: dict | None = None,
     page_size: int | None = None,
     continuation: str | None = None,
-    user=Depends(verify_internal_token),
 ):
     try:
         continuation = unquote(continuation) if continuation else None
@@ -140,12 +132,7 @@ def query_documents(
 
 
 @app.patch("/{container_name}/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_document(
-    container_name: str,
-    document_id: str,
-    updates: dict,
-    user=Depends(verify_internal_token),
-):
+def update_document(container_name: str, document_id: str, updates: dict):
     try:
         container = database.get_container_client(container_name)
         container.patch_item(
@@ -163,9 +150,7 @@ def update_document(
 
 
 @app.delete("/{container_name}/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_document(
-    container_name: str, document_id: str, user=Depends(verify_internal_token)
-):
+def delete_document(container_name: str, document_id: str):
     try:
         container = database.get_container_client(container_name)
         container.delete_item(item=document_id, partition_key=document_id)

@@ -7,7 +7,7 @@ from microsoft_agents.hosting.core import AuthTypes, MemoryStorage, TurnContext
 from microsoft_agents.hosting.core.app import AgentApplication
 from microsoft_agents.hosting.fastapi import CloudAdapter, start_agent_process
 from src.settings import SETTINGS
-from src.utils import get_thread_id, set_thread_id, verify_internal_token
+from src.utils import get_thread_id, set_thread_id
 
 aif_client = AgentsClient(
     endpoint=SETTINGS.aif_project_endpoint,
@@ -29,7 +29,7 @@ app = FastAPI()
 
 
 @app.post("/api/messages")
-async def messages(request: Request, user=Depends(verify_internal_token)):
+async def messages(request: Request):
     return await start_agent_process(request, agent_app, adapter)
 
 
