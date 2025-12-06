@@ -8,6 +8,6 @@ app = FastAPI()
 async def login(user=Depends(verify_google_token)):
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid Google token")
-    token = create_internal_token(user)
+    expire, token = create_internal_token(user)
 
-    return {"token": token}
+    return {"token": token, "expire": expire}

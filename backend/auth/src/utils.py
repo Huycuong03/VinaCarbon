@@ -17,9 +17,9 @@ def verify_google_token(token: str):
         return None
 
 
-def create_internal_token(data: dict) -> str:
-    expire = datetime.now() + timedelta(minutes=SETTINGS.jwt_expire)
+def create_internal_token(data: dict) -> tuple[datetime, str]:
+    expire = datetime.now() + timedelta(seconds=SETTINGS.jwt_expire)
     data["exp"] = expire
     token = jwt.encode(data, SETTINGS.jwt_private_key, SETTINGS.jwt_algorithm)
 
-    return token
+    return expire, token
