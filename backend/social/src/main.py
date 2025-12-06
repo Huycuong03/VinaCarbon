@@ -1,27 +1,33 @@
 import json
+from contextlib import asynccontextmanager
 from urllib.parse import quote, unquote
 
-from azure.cosmos.cosmos_client import CosmosClient
+from azure.cosmos.aio import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceNotFoundError
 from cachetools import TTLCache
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status
 from src.settings import SETTINGS
 from src.utils import clean_document, construct_query
 
-database = CosmosClient(
-    SETTINGS.cosmos_endpoint, SETTINGS.cosmos_key
-).get_database_client(SETTINGS.database_name)
-
+cosmos_client = CosmosClient(SETTINGS.cosmos_endpoint, SETTINGS.cosmos_key)
+database = cosmos_client.get_database_client(SETTINGS.database_name)
 cache = TTLCache(SETTINGS.cache_maxsize, SETTINGS.cache_ttl)
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await cosmos_client.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/{container_name}", status_code=status.HTTP_204_NO_CONTENT)
-def create_document(container_name: str, document: dict):
+async def create_document(container_name: str, document: dict):
     try:
         container = database.get_container_client(container_name)
-        container.create_item(document)
+        await container.create_item(document)
     except CosmosResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except CosmosHttpResponseError as e:
@@ -29,8 +35,8 @@ def create_document(container_name: str, document: dict):
 
 
 @app.get("/{container_name}")
-def get_all_documents(
-    container_name: str, page_size: int, continuation: str | None = None
+async def get_all_documents(
+    container_name: str, page_size: int | None, continuation: str | None = None
 ):
     try:
         continuation = unquote(continuation) if continuation else None
@@ -40,16 +46,16 @@ def get_all_documents(
             container = database.get_container_client(container_name)
             pages = container.read_all_items(max_item_count=page_size).by_page()
 
-        page = next(pages)
+        page = await anext(pages)
 
         if continuation is None:
-            continuation_obj_str = getattr(pages, "continuation_token", None)
-            if continuation_obj_str is not None:
-                continuation_obj: dict = json.loads(continuation_obj_str)
+            continuation = getattr(pages, "continuation_token", None)
+            if continuation is not None:
+                continuation_obj: dict = json.loads(continuation)
                 continuation = continuation_obj["token"]
                 cache[continuation] = pages
 
-        documents = [clean_document(doc) for doc in page]
+        documents = [clean_document(doc) async for doc in page]
         continuation = quote(continuation) if continuation else None
         return {
             "documents": documents,
@@ -68,10 +74,12 @@ def get_all_documents(
 
 
 @app.get("/{container_name}/{document_id}")
-def find_document_by_id(container_name: str, document_id: str):
+async def find_document_by_id(container_name: str, document_id: str):
     try:
         container = database.get_container_client(container_name)
-        document = container.read_item(item=document_id, partition_key=document_id)
+        document = await container.read_item(
+            item=document_id, partition_key=document_id
+        )
         document = clean_document(document)
         return {"document": document}
     except CosmosResourceNotFoundError as e:
@@ -81,7 +89,7 @@ def find_document_by_id(container_name: str, document_id: str):
 
 
 @app.post("/{container_name}/query")
-def query_documents(
+async def query_documents(
     container_name: str,
     query_params: dict | None = None,
     page_size: int | None = None,
@@ -103,16 +111,16 @@ def query_documents(
                 query=query,
                 parameters=params,
                 max_item_count=page_size,
-                enable_cross_partition_query=True,
             ).by_page()
 
-        page = next(pages)
+        page = await anext(pages)
 
         if continuation is None:
             continuation = getattr(pages, "continuation_token", None)
-            cache[continuation] = pages
+            if continuation is not None:
+                cache[continuation] = pages
 
-        documents = [clean_document(doc) for doc in page]
+        documents = [clean_document(doc) async for doc in page]
         continuation = quote(continuation) if continuation else None
 
         return {
@@ -132,10 +140,10 @@ def query_documents(
 
 
 @app.patch("/{container_name}/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_document(container_name: str, document_id: str, updates: dict):
+async def update_document(container_name: str, document_id: str, updates: dict):
     try:
         container = database.get_container_client(container_name)
-        container.patch_item(
+        await container.patch_item(
             item=document_id,
             partition_key=document_id,
             patch_operations=[
@@ -150,10 +158,10 @@ def update_document(container_name: str, document_id: str, updates: dict):
 
 
 @app.delete("/{container_name}/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_document(container_name: str, document_id: str):
+async def delete_document(container_name: str, document_id: str):
     try:
         container = database.get_container_client(container_name)
-        container.delete_item(item=document_id, partition_key=document_id)
+        await container.delete_item(item=document_id, partition_key=document_id)
     except CosmosResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except CosmosHttpResponseError as e:

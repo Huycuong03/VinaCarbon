@@ -2,16 +2,15 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    cache_maxsize: int
-    cache_ttl: int
+    cache_maxsize: int = 1_000
+    cache_ttl: int = 60 * 60 * 2
 
     cosmos_endpoint: str
     cosmos_key: str
-
     database_name: str
 
-    default_order_by: str
-    default_order_dir: str
+    default_order_by: str = "c._ts"
+    default_order_dir: str = "DESC"
 
 
 SETTINGS = Settings()  # type: ignore
