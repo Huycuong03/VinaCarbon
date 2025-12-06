@@ -1,5 +1,5 @@
 fastapi 
 uvicorn 
-authlib 
-python-jose[cryptography]
 pydantic-settings
+google-auth
+python-jose[cryptography]

@@ -2,6 +2,7 @@ fastapi
 uvicorn
 aiohttp
 pydantic-settings
+python-jose[cryptography]
 azure-search-documents
 azure-ai-agents
 azure-identity
