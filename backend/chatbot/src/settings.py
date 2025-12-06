@@ -2,10 +2,13 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    azure_client_id: str
+    cache_maxsize: int = 1_000
+    cache_ttl: int = 60 * 60 * 2
 
-    aif_project_endpoint: str
-    aif_agent_id: str
+    aif_project_endpoint: str = (
+        "https://vinacarbon-foundry-default.services.ai.azure.com/api/projects/first-project"
+    )
+    aif_agent_id: str = "asst_q9MJOyZybyrMHqNPxOO8mo60"
 
 
 SETTINGS = Settings()  # type: ignore

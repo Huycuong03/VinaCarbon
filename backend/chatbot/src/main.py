@@ -1,67 +1,100 @@
+from contextlib import asynccontextmanager
+from urllib.parse import quote, unquote
+
 from azure.ai.agents.aio import AgentsClient
-from azure.ai.agents.models import MessageRole
+from azure.ai.agents.models import (
+    ListSortOrder,
+    MessageInputTextBlock,
+    MessageRole,
+    ThreadMessage,
+)
+from azure.core.exceptions import HttpResponseError
 from azure.identity.aio import DefaultAzureCredential
-from fastapi import Depends, FastAPI, Request
-from microsoft_agents.authentication.msal import MsalConnectionManager
-from microsoft_agents.hosting.core import AuthTypes, MemoryStorage, TurnContext
-from microsoft_agents.hosting.core.app import AgentApplication
-from microsoft_agents.hosting.fastapi import CloudAdapter, start_agent_process
+from cachetools import TTLCache
+from fastapi import FastAPI, HTTPException, status
 from src.settings import SETTINGS
-from src.utils import get_thread_id, set_thread_id
 
 aif_client = AgentsClient(
     endpoint=SETTINGS.aif_project_endpoint,
     credential=DefaultAzureCredential(),
 )
+cache = TTLCache(SETTINGS.cache_maxsize, SETTINGS.cache_ttl)
 
-adapter = CloudAdapter(
-    connection_manager=MsalConnectionManager(
-        connections_configurations={  # type: ignore
-            "SERVICE_CONNECTION": {
-                "auth_type": AuthTypes.user_managed_identity,
-                "client_id": SETTINGS.azure_client_id,
-            }
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await aif_client.close()
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/{thread_id}")
+async def get_messages(
+    thread_id: str, page_size: int | None = None, continuation: str | None = None
+):
+    try:
+        continuation = unquote(continuation) if continuation else None
+        if continuation in cache:
+            pages = cache[continuation]
+        else:
+            pages = aif_client.messages.list(
+                thread_id=thread_id, limit=page_size, order=ListSortOrder.DESCENDING
+            ).by_page()
+
+        page = await anext(pages)
+
+        if continuation is None:
+            continuation = getattr(pages, "continuation_token", None)
+            if continuation is not None:
+                cache[continuation] = pages
+
+        messages = [msg async for msg in page]
+        continuation = quote(continuation) if continuation else None
+        return {
+            "messages": messages,
+            "continuation": continuation,
         }
-    )
-)
-agent_app = AgentApplication(storage=MemoryStorage(), adapter=adapter)
-app = FastAPI()
+    except StopIteration as e:
+        cache.pop(continuation, None)
+        return {
+            "messages": [],
+            "continuation": None,
+        }
+    except HttpResponseError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@app.post("/api/messages")
-async def messages(request: Request):
-    return await start_agent_process(request, agent_app, adapter)
-
-
-@agent_app.activity("message")
-async def on_message(context: TurnContext, state):
-
-    channel_id = context.activity.channel_id
-    conversation_id = context.activity.conversation.id
-    thread_id = get_thread_id(channel_id, conversation_id)
-
-    if thread_id is None:
-        thread = await aif_client.threads.create()
-        set_thread_id(channel_id, conversation_id, thread.id)
-    else:
-        thread = await aif_client.threads.get(thread_id=thread_id)
-
-    await aif_client.messages.create(
-        thread_id=thread.id,
-        role=MessageRole.USER,
-        content=context.activity.text,
-    )
-
-    run = await aif_client.runs.create_and_process(
-        thread_id=thread.id, agent_id=SETTINGS.aif_agent_id
-    )
-
-    if run.status == "failed":
-        response = f"Sorry, something went wrong while processing your request. {run.last_error}"
-    else:
-        response = await aif_client.messages.get_last_message_text_by_role(
-            thread_id=thread.id, role=MessageRole.AGENT
+@app.post("/{thread_id}")
+async def post_messages(thread_id: str, message: dict):
+    try:
+        await aif_client.messages.create(
+            thread_id=thread_id,
+            role=MessageRole.USER,
+            content=[MessageInputTextBlock(message)],
         )
-        response = response.text.value  # type: ignore
 
-    await context.send_activity(response)
+        run = await aif_client.runs.create_and_process(
+            thread_id=thread_id, agent_id=SETTINGS.aif_agent_id
+        )
+
+        if run.status == "failed":
+            response = ThreadMessage(
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": {"value": run.last_error.as_dict()},
+                        }
+                    ]
+                }
+            )
+        else:
+            response = await aif_client.messages.get_last_message_by_role(
+                thread_id=thread_id, role=MessageRole.AGENT
+            )
+        if response:
+            return response.as_dict()
+    except HttpResponseError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
