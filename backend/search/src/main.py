@@ -1,5 +1,5 @@
 from azure.core.credentials import AzureKeyCredential
-from azure.search.documents import SearchClient
+from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import QueryType, SearchMode
 from fastapi import FastAPI
 from src.settings import SETTINGS
@@ -16,13 +16,13 @@ app = FastAPI()
 
 @app.get("/")
 async def search(query: str, page: int = 1, page_size: int = 10):
-    hits = search_client.search(
+    hits = await search_client.search(
         query,
         query_type=QueryType.SIMPLE,
         search_mode=SearchMode.ANY,
     )
 
-    documents = aggregate_search_hits(hits)
+    documents = await aggregate_search_hits(hits)
 
     total_results = len(documents)
     total_pages = (total_results + page_size - 1) // page_size

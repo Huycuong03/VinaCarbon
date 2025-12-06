@@ -1,9 +1,9 @@
-from azure.search.documents._paging import SearchItemPaged
+from azure.search.documents.aio._paging import AsyncSearchItemPaged
 
 
-def aggregate_search_hits(hits: SearchItemPaged) -> list[dict]:
+async def aggregate_search_hits(hits: AsyncSearchItemPaged) -> list[dict]:
     docs = {}
-    for hit in hits:
+    async for hit in hits:
         id = hit["snippet_parent_id"]
         doc = {
             "id": hit["snippet_parent_id"],
