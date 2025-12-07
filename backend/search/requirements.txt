@@ -1,4 +1,5 @@
 fastapi
 uvicorn
+aiohttp
 pydantic-settings
 azure-search-documents

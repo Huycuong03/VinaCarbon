@@ -2,9 +2,6 @@ fastapi
 uvicorn
 aiohttp
 pydantic-settings
-python-jose[cryptography]
-azure-search-documents
+cachetools
 azure-ai-agents
 azure-identity
-microsoft-agents-hosting-fastapi
-microsoft-agents-authentication-msal

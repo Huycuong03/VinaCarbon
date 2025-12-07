@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+aiohttp
 pydantic-settings
-python-jose[cryptography]
+cachetools
 azure-cosmos

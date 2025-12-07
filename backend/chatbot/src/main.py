@@ -9,14 +9,18 @@ from azure.ai.agents.models import (
     ThreadMessage,
 )
 from azure.core.exceptions import HttpResponseError
-from azure.identity.aio import DefaultAzureCredential
+from azure.identity.aio import ClientSecretCredential
 from cachetools import TTLCache
 from fastapi import FastAPI, HTTPException, status
 from src.settings import SETTINGS
 
 aif_client = AgentsClient(
     endpoint=SETTINGS.aif_project_endpoint,
-    credential=DefaultAzureCredential(),
+    credential=ClientSecretCredential(
+        tenant_id=SETTINGS.tenant_id,
+        client_id=SETTINGS.app_id,
+        client_secret=SETTINGS.app_secret,
+    ),
 )
 cache = TTLCache(SETTINGS.cache_maxsize, SETTINGS.cache_ttl)
 

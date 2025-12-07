@@ -1,0 +1,27 @@
+services:
+  search-service:
+    build:
+      context: ./search
+    container_name: search-service
+    env_file:
+      - .env
+    ports:
+      - "8001:80"
+
+  chatbot-service:
+    build:
+      context: ./chatbot
+    container_name: chatbot-service
+    env_file:
+      - .env
+    ports:
+      - "8002:80"
+
+  social-service:
+    build:
+      context: ./social
+    container_name: social-service
+    env_file:
+      - .env
+    ports:
+      - "8003:80"
