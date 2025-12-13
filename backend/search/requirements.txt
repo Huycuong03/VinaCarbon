@@ -3,3 +3,5 @@ uvicorn
 aiohttp
 pydantic-settings
 azure-search-documents
+openai
+pandas
