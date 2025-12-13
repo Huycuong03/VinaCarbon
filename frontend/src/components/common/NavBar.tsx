@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Page, NavItem } from "@/types";
-import { APP_NAME } from "@/constants";
+import { NavItem } from "@/types/common";
+import { APP_NAME, Page } from "@/constants";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function NavBar({ page }: { page: string }) {

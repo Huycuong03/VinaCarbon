@@ -1,4 +1,4 @@
-import { Post } from "@/types";
+import { Post } from "@/types/community";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 
 export default function PostCard({ post }: { post: Post }) {

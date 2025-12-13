@@ -1,4 +1,4 @@
-import { Article, Post } from '@/types';
+import { Article, Post } from '@/types/community';
 
 export const APP_NAME = "VinaCarbon";
 
@@ -83,5 +83,10 @@ export const MOCK_DOCUMENTS = [
   { title: "Carbon Pricing Technical Report", type: "PDF", size: "5.6 MB", date: "Aug 2023" },
 ];
 
-export const IMAGE_LAYER_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-export const REFERENCE_LAYER_URL = "https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+export enum Page {
+  HOME = '/',
+  SEARCH = '/search',
+  ASSISTANT = '/assistant',
+  MAP = '/map',
+  COMMUNITY = '/community',
+}

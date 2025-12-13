@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { FeatureGroup, MapContainer, TileLayer } from "react-leaflet";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MapControls from "@/components/map/MapControls";
-import { IMAGE_LAYER_URL, REFERENCE_LAYER_URL } from "@/constants";
 import NavBar from "@/components/common/NavBar";
 import { Page } from "@/types";
 
@@ -27,8 +26,8 @@ return (
         {/* <NavBar page={Page.MAP} className="order-3" /> */}
         <div className="flex-1 relative bg-gray-200 z-0 order-1">
             <MapContainer ref={map} center={[21.0285, 105.8542]} zoom={13} style={{ width: "100%", height: "100%" }}>
-                <TileLayer url={IMAGE_LAYER_URL} />
-                <TileLayer url={REFERENCE_LAYER_URL} />
+                <TileLayer url={process.env.MAP_IMAGE_LAYER_URL} />
+                <TileLayer url={process.env.MAP_REFERENCE_LAYER_URL} />
                 <FeatureGroup ref={featureGroup} />
                 <MapControls featureGroup={featureGroup} />
             </MapContainer>

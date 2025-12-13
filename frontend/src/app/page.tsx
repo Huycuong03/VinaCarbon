@@ -2,7 +2,7 @@ import SearchBar from "@/components/common/SearchBar";
 import { ArrowRight } from "lucide-react";
 import { FEATURED_ARTICLES } from "@/constants";
 import NavBar from "@/components/common/NavBar";
-import { Page } from "@/types";
+import { Page } from "@/constants";
 
 
 export default async function Home() {

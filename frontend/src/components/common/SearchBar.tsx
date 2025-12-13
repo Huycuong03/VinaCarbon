@@ -3,19 +3,19 @@
 import { useRef, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ArrowRight } from "lucide-react";
-import { Page } from "@/types";
+import { Page } from "@/constants";
 import { useEffect } from "react";
 
 export default function SearchBar({ query }: { query: string | null }) {
     const router = useRouter();
     const searchBar = useRef<HTMLInputElement>(null);
+    
     const handleSearch = (e: FormEvent) => {
         e.preventDefault()
         const query = searchBar.current?.value.trim();
         if (!query) return;
 
-        const href = `${Page.SEARCH}?q=${encodeURIComponent(query)}`
-        console.log(href)
+        const href = `${Page.SEARCH}?query=${encodeURIComponent(query)}`
         router.push(href);
     };
 
@@ -38,18 +38,7 @@ export default function SearchBar({ query }: { query: string | null }) {
                     ref={searchBar}
                     type="text"
                     placeholder="Search documents, policies, or guides..."
-                    className="
-                    w-full pl-12 pr-14 py-4 
-                    rounded-full 
-                    bg-white/40 backdrop-blur 
-                    text-[#333333] font-sans text-lg font-light 
-                    placeholder-white/40
-                    shadow-5xl 
-                    focus:bg-white/85 
-                    focus:scale-[1.01] 
-                    focus:outline-none 
-                    focus:placeholder-gray-500
-                    transition-all"
+                    className="w-full pl-12 pr-14 py-4 rounded-full bg-white/40 backdrop-blur text-[#333333] font-sans text-lg font-light placeholder-white/40 shadow-5xl focus:bg-white/85 focus:scale-[1.01] focus:outline-none focus:placeholder-gray-500 transition-all"
                 />
                 <button
                     type="submit"

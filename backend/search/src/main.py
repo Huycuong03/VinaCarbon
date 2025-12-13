@@ -5,6 +5,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import QueryType, SearchMode, VectorizedQuery
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncAzureOpenAI
 from src.settings import SETTINGS
 from src.setup import setup
@@ -41,6 +42,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
