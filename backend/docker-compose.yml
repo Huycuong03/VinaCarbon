@@ -8,19 +8,10 @@ services:
     ports:
       - "8001:80"
 
-  chatbot-service:
+  community-service:
     build:
-      context: ./chatbot
-    container_name: chatbot-service
-    env_file:
-      - .env
-    ports:
-      - "8002:80"
-
-  social-service:
-    build:
-      context: ./social
-    container_name: social-service
+      context: ./community
+    container_name: community-service
     env_file:
       - .env
     ports:

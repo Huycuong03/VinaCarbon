@@ -1,14 +1,18 @@
-import SearchBar from "@/components/common/SearchBar";
+"use client";
+
+import { useSession } from "next-auth/react";
+
+import { NavBar, SearchBar } from "@/components/common";
+
 import { ArrowRight } from "lucide-react";
-import { FEATURED_ARTICLES } from "@/constants";
-import NavBar from "@/components/common/NavBar";
-import { Page } from "@/constants";
+import { FEATURED_ARTICLES, Page } from "@/constants";
 
 
-export default async function Home() {
+export default function Home() {
+  const { data: session, status } = useSession();
   return (
     <div className="min-h-screen flex flex-col font-sans text-[#333333] bg-[#F5F1EA]">
-      <NavBar page={`${Page.HOME}`}/>
+      <NavBar page={`${Page.HOME}`} user={session?.user}/>
       <div className="animate-fade-in">
         <section className="relative h-[80vh] flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0">

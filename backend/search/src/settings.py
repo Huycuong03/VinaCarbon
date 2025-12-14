@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     ai_key: str
     ai_api_version: str
 
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore")
 
 
 SETTINGS = Settings()  # type: ignore

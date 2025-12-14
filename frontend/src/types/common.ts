@@ -1,10 +1,11 @@
 export interface User {
-  id: string;
-  name: string;
-}
+  email?: string | null | undefined;
+  name?: string | null | undefined;
+  image?: string | null | undefined;
+};
 
 export interface NavItem {
   id: string;
   label: string;
   icon?: any;
-}
+};

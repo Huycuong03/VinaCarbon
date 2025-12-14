@@ -1,0 +1,200 @@
+[
+  {
+    "id": "post-001",
+    "author": {
+      "email": "alice@example.com",
+      "name": "Alice Johnson",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-05T09:12:34Z",
+    "content": "Morning coffee and big ideas.",
+    "image": "https://picsum.photos/600/300?random=12",
+    "likes": [
+      {
+        "email": "nguyenhuy2k8@gmail.com",
+        "name": "Huy Nguyen",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [
+      {
+        "id": "c-001",
+        "author": {
+          "email": "carol@example.com",
+          "name": "Carol White",
+          "image": "https://picsum.photos/50/50?random=10"
+        },
+        "created_at": "2025-01-05T10:01:00Z",
+        "content": "That looks delicious!"
+      }
+    ],
+    "tags": ["coffee", "morning"]
+  },
+  {
+    "id": "post-002",
+    "author": {
+      "email": "nguyenhuy2k8@gmail.com",
+      "name": "Huy Nguyen",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-06T14:22:10Z",
+    "content": "Shipping a small feature today 🚀",
+    "likes": [
+      {
+        "email": "alice@example.com",
+        "name": "Alice Johnson",
+        "image": "https://picsum.photos/50/50?random=10"
+      },
+      {
+        "email": "dave@example.com",
+        "name": "Dave Brown",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [],
+    "tags": ["dev", "work"]
+  },
+  {
+    "id": "post-003",
+    "author": {
+      "email": "carol@example.com",
+      "name": "Carol White",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-07T08:45:00Z",
+    "content": "Sunrise walks are underrated.",
+    "image": "https://picsum.photos/600/300?random=12",
+    "likes": [],
+    "comments": [],
+    "tags": ["nature", "wellbeing"]
+  },
+  {
+    "id": "post-004",
+    "author": {
+      "email": "dave@example.com",
+      "name": "Dave Brown",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-08T19:30:55Z",
+    "content": "Trying out a new recipe tonight.",
+    "image": "https://picsum.photos/600/300?random=12",
+    "likes": [
+      {
+        "email": "alice@example.com",
+        "name": "Alice Johnson",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [
+      {
+        "id": "c-002",
+        "author": {
+          "email": "nguyenhuy2k8@gmail.com",
+          "name": "Huy Nguyen",
+          "image": "https://picsum.photos/50/50?random=10"
+        },
+        "created_at": "2025-01-08T20:10:00Z",
+        "content": "Save me a plate."
+      }
+    ],
+    "tags": ["food", "cooking"]
+  },
+  {
+    "id": "post-005",
+    "author": {
+      "email": "erin@example.com",
+      "name": "Erin Lee",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-09T11:05:42Z",
+    "content": "Reading something that rewired my brain.",
+    "likes": [],
+    "comments": [],
+    "tags": ["books", "learning"]
+  },
+  {
+    "id": "post-006",
+    "author": {
+      "email": "frank@example.com",
+      "name": "Frank Green",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-10T16:48:19Z",
+    "content": "Debugging is just detective work with worse lighting.",
+    "likes": [
+      {
+        "email": "erin@example.com",
+        "name": "Erin Lee",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [],
+    "tags": ["programming", "humor"]
+  },
+  {
+    "id": "post-007",
+    "author": {
+      "email": "gina@example.com",
+      "name": "Gina Torres",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-11T07:20:00Z",
+    "content": "Early flight, empty airport vibes.",
+    "image": "https://picsum.photos/600/300?random=12",
+    "likes": [],
+    "comments": [],
+    "tags": ["travel"]
+  },
+  {
+    "id": "post-008",
+    "author": {
+      "email": "harry@example.com",
+      "name": "Harry Wilson",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-12T21:15:09Z",
+    "content": "Game night chaos was a success.",
+    "likes": [
+      {
+        "email": "gina@example.com",
+        "name": "Gina Torres",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [],
+    "tags": ["friends", "games"]
+  },
+  {
+    "id": "post-009",
+    "author": {
+      "email": "ivy@example.com",
+      "name": "Ivy Chen",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-13T13:00:00Z",
+    "content": "Finally organized my workspace.",
+    "image": "https://picsum.photos/600/300?random=12",
+    "likes": [],
+    "comments": [],
+    "tags": ["productivity"]
+  },
+  {
+    "id": "post-010",
+    "author": {
+      "email": "jack@example.com",
+      "name": "Jack Miller",
+      "image": "https://picsum.photos/50/50?random=10"
+    },
+    "created_at": "2025-01-14T18:40:33Z",
+    "content": "Ending the week with a long run.",
+    "likes": [
+      {
+        "email": "ivy@example.com",
+        "name": "Ivy Chen",
+        "image": "https://picsum.photos/50/50?random=10"
+      }
+    ],
+    "comments": [],
+    "tags": ["fitness", "running"]
+  }
+]

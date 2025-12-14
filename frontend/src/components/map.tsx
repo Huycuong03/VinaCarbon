@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef, FormEvent } from "react";
-import { useMap } from "react-leaflet";
+import { FeatureGroup, MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-draw";
 import { LocateFixed, Square, Pentagon, FileBracesCorner, ChartColumnBig, Trash2, MapPin } from "lucide-react";
+import { MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
 
-export default function MapControls({ featureGroup }: { featureGroup: any }) {
+export function MapControls({ featureGroup }: { featureGroup: any }) {
     const map = useMap();
     const [hasFeatures, setHasFeatures] = useState<boolean>(false);
     const drawTool = useRef(null)
@@ -89,7 +90,7 @@ export default function MapControls({ featureGroup }: { featureGroup: any }) {
         return () => {
             map.off(L.Draw.Event.CREATED);
             map.off("locationfound");
-            map.off("mousemove")
+            map.off("mousemove");
             disbaleDrawTool();
         };
     }, []);
@@ -101,19 +102,19 @@ export default function MapControls({ featureGroup }: { featureGroup: any }) {
                     className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white"
                     onClick={() => { map.locate() }}
                 >
-                    <LocateFixed size={20}/>
+                    <LocateFixed size={20} />
                 </button>
-                <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => {enableDrawTool(true)}}>
-                    <Square size={20}/>
+                <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => { enableDrawTool(true) }}>
+                    <Square size={20} />
                 </button>
-                <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => {enableDrawTool(false)}}>
-                    <Pentagon size={20}/>
+                <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => { enableDrawTool(false) }}>
+                    <Pentagon size={20} />
                 </button>
                 <button
                     className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white"
                     onClick={() => document.getElementById("upload-geojson")?.click()}
                 >
-                    <FileBracesCorner size={20}/>
+                    <FileBracesCorner size={20} />
                     <input
                         id="upload-geojson"
                         type="file"
@@ -124,11 +125,11 @@ export default function MapControls({ featureGroup }: { featureGroup: any }) {
                 </button>
                 {hasFeatures && (
                     <>
-                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => {}}>
-                            <ChartColumnBig size={20}/>
+                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => { }}>
+                            <ChartColumnBig size={20} />
                         </button>
                         <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={onClearFeatures}>
-                            <Trash2 size={20}/>
+                            <Trash2 size={20} />
                         </button>
                     </>
                 )}
@@ -139,4 +140,18 @@ export default function MapControls({ featureGroup }: { featureGroup: any }) {
             </div>
         </>
     );
-}
+};
+
+export function Map() {
+    const map = useRef(null);
+    const featureGroup = useRef(null);
+
+    return (
+        <MapContainer ref={map} center={[21.0285, 105.8542]} zoom={13} style={{ width: "100%", height: "100%" }}>
+            <TileLayer url={MAP_IMAGE_LAYER_URL} />
+            <TileLayer url={MAP_REFERENCE_LAYER_URL} />
+            <FeatureGroup ref={featureGroup} />
+            <MapControls featureGroup={featureGroup} />
+        </MapContainer>
+    );
+};

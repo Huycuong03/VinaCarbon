@@ -6,6 +6,7 @@ from azure.cosmos.aio import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceNotFoundError
 from cachetools import TTLCache
 from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from src.settings import SETTINGS
 from src.utils import clean_document, construct_query
 
@@ -22,6 +23,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/{container_name}", status_code=status.HTTP_204_NO_CONTENT)
 async def create_document(container_name: str, document: dict):
@@ -36,7 +45,7 @@ async def create_document(container_name: str, document: dict):
 
 @app.get("/{container_name}")
 async def get_all_documents(
-    container_name: str, page_size: int | None, continuation: str | None = None
+    container_name: str, page_size: int | None = 5, continuation: str | None = None
 ):
     try:
         continuation = unquote(continuation) if continuation else None
@@ -61,7 +70,7 @@ async def get_all_documents(
             "documents": documents,
             "continuation": continuation,
         }
-    except StopIteration as e:
+    except StopAsyncIteration as e:
         cache.pop(continuation, None)
         return {
             "documents": [],
@@ -127,7 +136,7 @@ async def query_documents(
             "documents": documents,
             "continuation": continuation,
         }
-    except StopIteration as e:
+    except StopAsyncIteration as e:
         cache.pop(continuation, None)
         return {
             "documents": [],

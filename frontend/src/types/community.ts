@@ -1,3 +1,5 @@
+import { User } from "@/types/common";
+
 export interface Article {
   id: string;
   title: string;
@@ -6,16 +8,22 @@ export interface Article {
   imageUrl: string;
   readTime: string;
   content?: string;
-}
+};
+
+export interface Comment {
+  id: string;
+  author: User;
+  created_at: string;
+  content: string;
+};
 
 export interface Post {
   id: string;
-  author: string;
-  authorAvatar: string;
-  timeAgo: string;
+  author: User;
+  created_at: string;
   content: string;
   image?: string;
-  likes: number;
-  comments: number;
+  likes: User[];
+  comments: Comment[];
   tags: string[];
-}
+};
