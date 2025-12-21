@@ -1,14 +1,13 @@
-import json
 from contextlib import asynccontextmanager
 from urllib.parse import quote, unquote
 
 from azure.cosmos.aio import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceNotFoundError
 from cachetools import TTLCache
-from fastapi import FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import SETTINGS
-from src.utils import clean_document, construct_query
+from src.utils import clean_document, construct_query, moderate_content
 
 cosmos_client = CosmosClient(SETTINGS.cosmos_endpoint, SETTINGS.cosmos_key)
 database = cosmos_client.get_database_client(SETTINGS.database_name)
@@ -33,14 +32,26 @@ app.add_middleware(
 
 
 @app.post("/{container_name}", status_code=status.HTTP_204_NO_CONTENT)
-async def create_document(container_name: str, document: dict):
+async def create_document(
+    container_name: str, document: dict, background_tasks: BackgroundTasks
+):
     try:
         container = database.get_container_client(container_name)
         await container.create_item(document)
+        background_tasks.add_task(run_moderation, container_name, document)
     except CosmosResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except CosmosHttpResponseError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+async def run_moderation(container_name: str, document: dict):
+    passed = True
+    if "content" in document:
+        passed = await moderate_content(document["content"])
+
+    if not passed:
+        await delete_document(container_name, document_id=document["id"])
 
 
 @app.get("/{container_name}")
@@ -53,15 +64,15 @@ async def get_all_documents(
             pages = cache[continuation]
         else:
             container = database.get_container_client(container_name)
-            pages = container.read_all_items(max_item_count=page_size).by_page()
+            pages = container.query_items(
+                query="SELECT * FROM c ORDER BY c._ts DESC", max_item_count=page_size
+            ).by_page()
 
         page = await anext(pages)
 
         if continuation is None:
             continuation = getattr(pages, "continuation_token", None)
             if continuation is not None:
-                continuation_obj: dict = json.loads(continuation)
-                continuation = continuation_obj["token"]
                 cache[continuation] = pages
 
         documents = [clean_document(doc) async for doc in page]
@@ -149,16 +160,13 @@ async def query_documents(
 
 
 @app.patch("/{container_name}/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def update_document(container_name: str, document_id: str, updates: dict):
+async def update_document(container_name: str, document_id: str, updates: list[dict]):
     try:
         container = database.get_container_client(container_name)
         await container.patch_item(
             item=document_id,
             partition_key=document_id,
-            patch_operations=[
-                {"op": "replace", "path": f"/{key}", "value": value}
-                for key, value in updates.items()
-            ],
+            patch_operations=[update for update in updates],
         )
     except CosmosResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

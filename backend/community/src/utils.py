@@ -8,6 +8,11 @@ def clean_document(document: dict[str, Any]) -> dict[str, Any]:
     return document
 
 
+async def moderate_content(content: str) -> bool:
+    banned_words = {"fuck", "shit"}
+    return not any(word in content.lower().split() for word in banned_words)
+
+
 def construct_query(query_params: dict | None) -> tuple[str, list[dict[str, Any]]]:
     query = "SELECT * FROM c {where} ORDER BY {order_by} {order_dir}"
     order_by = SETTINGS.default_order_by
