@@ -15,4 +15,13 @@ services:
     env_file:
       - .env
     ports:
-      - "8003:80"
+      - "8002:80"
+
+  # map-service:
+  #   build:
+  #     context: ./map
+  #   container_name: map-service
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8003:80"
