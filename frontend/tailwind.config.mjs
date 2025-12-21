@@ -1,8 +1,8 @@
 const config = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
+
   theme: {
     extend: {
       colors: {
@@ -13,9 +13,10 @@ const config = {
         charcoal: "#333333",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        serif: ["Playfair Display", "serif"],
+        sans: ["var(--font-inter)", "sans-serif"],
+        serif: ["var(--font-playfair)", "serif"],
       },
+
       animation: {
         "fade-in": "fadeIn 0.5s ease-out forwards",
       },

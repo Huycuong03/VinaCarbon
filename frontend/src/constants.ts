@@ -1,4 +1,5 @@
-import { Article, Post } from '@/types/community';
+import { Page, NavItem, User } from '@/types/common';
+import { Article } from '@/types/community';
 
 export const APP_NAME = "VinaCarbon";
 
@@ -29,35 +30,28 @@ export const FEATURED_ARTICLES: Article[] = [
   }
 ];
 
-export const EDUCATION_MODULES = [
-  {
-    title: "Carbon Basics",
-    description: "What is a carbon credit and why does it matter?",
-    icon: "🌱"
-  },
-  {
-    title: "Project Types",
-    description: "Reforestation, Blue Carbon, and Methane Reduction.",
-    icon: "🌳"
-  },
-  {
-    title: "Measurement",
-    description: "How scientists calculate the value of your land.",
-    icon: "📏"
-  },
-  {
-    title: "Marketplace",
-    description: "How to sell your credits safely and legally.",
-    icon: "💰"
-  }
+export const NAV_ITEMS: NavItem[] = [
+    { id: Page.HOME, label: 'Trang Chủ' },
+    { id: Page.SEARCH, label: 'Tài Liệu' },
+    { id: Page.ASSISTANT, label: 'Trợ Lý AI' },
+    { id: Page.MAP, label: 'Bản Đồ' },
+    { id: Page.COMMUNITY, label: 'Cộng Đồng' },
 ];
 
-export enum Page {
-  HOME = '/',
-  SEARCH = '/search',
-  ASSISTANT = '/assistant',
-  MAP = '/map',
-  COMMUNITY = '/community',
+export const DEFAULT_USER: {name: string, image: string} = {
+  name: "Default User",
+  image: "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
+}
+
+export const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: '2-digit',
+  year: 'numeric',
+})
+
+export function numberFormatter(n: number) {
+  const formatted = String(n).padStart(3, "0");
+  return formatted;
 }
 
 export const MAP_IMAGE_LAYER_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"

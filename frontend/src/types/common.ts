@@ -4,8 +4,17 @@ export interface User {
   image?: string | null | undefined;
 };
 
+export enum Page {
+  HOME = '/',
+  SEARCH = '/search',
+  ASSISTANT = '/assistant',
+  MAP = '/map',
+  COMMUNITY = '/community',
+  PROFILE = '/profile'
+}
+
 export interface NavItem {
-  id: string;
+  id: Page;
   label: string;
   icon?: any;
 };

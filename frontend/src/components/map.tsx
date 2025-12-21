@@ -6,6 +6,8 @@ import L from "leaflet";
 import "leaflet-draw";
 import { LocateFixed, Square, Pentagon, FileBracesCorner, ChartColumnBig, Trash2, MapPin } from "lucide-react";
 import { MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
+import "leaflet-geotiff-2";
+import "leaflet-geotiff-2/dist/leaflet-geotiff-plotty";
 
 export function MapControls({ featureGroup }: { featureGroup: any }) {
     const map = useMap();
@@ -40,11 +42,50 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
         setHasFeatures(false);
     }
 
-    // const onAnalyze = () => {
-    //     navigate("/estimation/analysis", {
-    //     state: selectionLayer.current.toGeoJSON(),
-    //     });
-    // };
+    const onAnalyze = async () => {
+        const features = featureGroup.current.toGeoJSON();
+        onClearFeatures();
+
+        try{
+            const response = await fetch(
+                "http://localhost:8003",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(features),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Unexpected status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            const renderer = L.LeafletGeotiff.plotty({
+                displayMin: 0,
+                displayMax: 1,
+                applyDisplayRange: true,
+                colorScale: "rainbow",
+            });
+
+            const imageLayer = L.leafletGeotiff(url, {
+                renderer: renderer,
+                band: 1,
+                opacity: 1,
+            });
+
+            imageLayer.addTo(featureGroup.current);
+            setHasFeatures(true);
+
+        } catch (error) {
+            console.error("Failed to get analysis", error);
+        }
+
+    };
 
     const onUploadGeoJSON = (e: FormEvent) => {
         disbaleDrawTool();
@@ -125,7 +166,7 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
                 </button>
                 {hasFeatures && (
                     <>
-                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => { }}>
+                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={onAnalyze}>
                             <ChartColumnBig size={20} />
                         </button>
                         <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={onClearFeatures}>
@@ -142,7 +183,7 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
     );
 };
 
-export function Map() {
+export default function Map() {
     const map = useRef(null);
     const featureGroup = useRef(null);
 

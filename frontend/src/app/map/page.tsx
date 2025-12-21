@@ -1,23 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-
-import { NavBar } from "@/components/common";
-import { Map } from "@/components/map";
-
+import dynamic from "next/dynamic";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Page } from "@/constants";
+
+const Map = dynamic(
+  () => import("@/components/map"),
+  { ssr: false }
+);
 
 
 export default function MapPage() {
-    const { data: session, status } = useSession();
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <NavBar page={Page.MAP} user={session?.user} />
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-white relative">
+        <div className="h-[calc(100vh-80px)] flex flex-col">
+            <div className="animate-fade-in flex-1 flex flex-col lg:flex-row overflow-hidden bg-white relative">
                 <div className="flex-1 relative bg-gray-200 z-0 order-1">
                     <Map />
                     {!sidebarOpen && (
@@ -32,7 +30,7 @@ export default function MapPage() {
                 </div>
 
                 <div
-                    className={`absolute top-4 right-4 bottom-4 w-96 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-earth/20 rounded-2xl flex flex-col overflow-hidden z-[1000] shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-[120%]'}`}
+                    className={`absolute top-4 right-4 bottom-4 w-96 max-w-[calc(100vw-2rem)] bg-white/40 backdrop-blur-md rounded-2xl flex flex-col overflow-hidden z-[1000] shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-[120%]'}`}
                 >
                     <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
                         <div className="flex justify-between items-start mb-4">
@@ -42,9 +40,9 @@ export default function MapPage() {
                             </div>
                             <button
                                 onClick={() => setSidebarOpen(false)}
-                                className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-forest transition-colors"
+                                className="p-2 rounded-full bg-white/60 cursor-pointer text-forest transition-all transform hover:scale-120"
                             >
-                                <ChevronRight size={24} />
+                                <ChevronRight size={20} />
                             </button>
                         </div>
                     </div>

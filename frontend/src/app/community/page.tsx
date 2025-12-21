@@ -3,18 +3,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
-import { NavBar } from "@/components/common";
 import { PostCard } from "@/components/community";
 
 import { Post } from "@/types/community";
-import { Page } from "@/constants";
+import { DEFAULT_USER, numberFormatter } from "@/constants";
+import { UserAvatar } from "@/components/common";
 
 export default function CommunityPage() {
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
     const [posts, setPosts] = useState<Post[]>([]);
     const [continuationToken, setContinuationToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const observerTarget = useRef<HTMLDivElement>(null);
+    const postInput = useRef<HTMLInputElement>(null);
 
     const loadPosts = useCallback(async () => {
         if (loading || (continuationToken === null && posts.length > 0)) return;
@@ -22,8 +23,8 @@ export default function CommunityPage() {
         try {
             setLoading(true);
             const url = continuationToken
-                ? `http://localhost:8003/posts?continuation=${encodeURIComponent(continuationToken)}`
-                : 'http://localhost:8003/posts';
+                ? `http://localhost:8002/posts?continuation=${encodeURIComponent(continuationToken)}`
+                : 'http://localhost:8002/posts';
             const res = await fetch(url);
             const { documents: data, continuation }: { documents: Post[], continuation: string | null } = await res.json();
             setPosts((prev) => [...prev, ...data]);
@@ -55,32 +56,85 @@ export default function CommunityPage() {
         };
     }, [loadPosts]);
 
+    async function handlePost() {
+        if (!session?.user) return;
+
+        const newPostContent = postInput.current?.value.trim();
+        if (!newPostContent) return;
+
+        if (postInput.current) {
+            postInput.current.value = "";
+        }
+
+        const newPost: Post = {
+            id: `post-${numberFormatter(posts.length + 1)}`,
+            author: session.user,
+            created_at: new Date().toISOString(),
+            content: newPostContent,
+            likes: [],
+            comments: [],
+            tags: []
+        }
+
+        try {
+            const response = await fetch(
+                `http://localhost:8002/posts`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(newPost),
+                }
+            );
+
+            if (response.status !== 204) {
+                throw new Error(`Unexpected status: ${response.status}`);
+            }
+
+            setPosts((prev) => [newPost, ...prev]);
+        } catch (error) {
+            console.error("Failed to update like", error);
+        }
+    }
+
     return (
-    <div className="animate-fade-in bg-gray-50 min-h-screen">
-            <NavBar page={Page.COMMUNITY} user={session?.user}/>
-            <div className="bg-[#1C3D2A] text-white py-16 px-6 text-center">
-                <h2 className="font-serif text-4xl font-bold mb-4">Farmer Community</h2>
-                <p className="text-xl opacity-90">Connect, share, and grow together.</p>
-            </div>
-            
-            <div className="max-w-3xl mx-auto -mt-8 px-6 pb-20">
-                <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
-                    <div className="flex gap-4">
-                        <div className="w-10 h-10 rounded-full bg-sand flex items-center justify-center font-bold text-forest">You</div>
-                        <input type="text" placeholder="Share your experience or ask a question..." className="flex-1 bg-gray-50 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-forest/20" />
-                    </div>
+        <div className="bg-gray-50 min-h-screen">
+            <div className="animate-fade-in">
+                <div className="bg-[url('https://picsum.photos/1920/1080?random=hero')] bg-cover bg-center bg-no-repeat bg-fixed bg-forest/50 bg-blend-darken text-white py-16 px-6 text-center">
+                    <h2 className="font-serif text-4xl font-bold mb-4 text-shadow-lg">Cộng Đồng Carbon</h2>
+                    <p className="text-xl font-light opacity-90">Kết nối, Chia sẻ, và Cùng Phát triển.</p>
                 </div>
 
-                <div className="space-y-6">
-                    {posts.map(post => <PostCard key={post.id} post={post} user={session?.user}/>)}
-                </div>
-                <div ref={observerTarget} className="py-8 flex justify-center w-full">
-                    {loading && (
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-8 h-8 border-4 border-bamboo border-t-forest rounded-full animate-spin"></div>
-                            <span className="text-sm text-gray-500">Loading ...</span>
+                <div className="max-w-3xl mx-auto -mt-8 px-6 pb-20">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8 hover:scale-[1.05] transition-all">
+                        <div className="flex gap-4">
+                            <UserAvatar user={session?.user || DEFAULT_USER} />
+                            <input
+                                ref={postInput}
+                                type="text"
+                                placeholder="Share your experience or ask a question..."
+                                className="flex-1 bg-gray-50 rounded-xl px-4 focus:outline-none"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handlePost();
+                                    }
+                                }}
+                            />
                         </div>
-                    )}
+                    </div>
+
+                    <div className="space-y-6">
+                        {posts.map((post, i) => <PostCard key={i} post={post} user={session?.user} />)}
+                    </div>
+                    <div ref={observerTarget} className="py-8 flex justify-center w-full">
+                        {loading && (
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="w-8 h-8 border-4 border-gray/20 border-t-charcoal rounded-full animate-spin"></div>
+                                <span className="text-sm text-gray-500">Loading ...</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

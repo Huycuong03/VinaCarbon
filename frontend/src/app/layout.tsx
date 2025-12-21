@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Lexend, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
-import Providers from "./providers";
+import SessionProviders from "@/app/providers";
+import { NavBar } from "@/components/common";
 
+export const lexend = Lexend({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "600", "700", "800", "900"],
+  variable: "--font-lexend",
+});
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -32,11 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} bg-sand text-charcoal antialiased`}
+        className={`${lexend.variable} ${inter.variable} ${playfair.variable} bg-sand text-charcoal antialiased`}
       >
-        <Providers>
+        <SessionProviders>
+          <NavBar />
           {children}
-        </Providers>
+        </SessionProviders>
       </body>
     </html>
   );
