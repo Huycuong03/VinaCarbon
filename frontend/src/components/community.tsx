@@ -78,7 +78,7 @@ function LikeButton({ post, user }: { post: Post, user: User | undefined }) {
 
         try {
             const response = await fetch(
-                `http://localhost:8002/posts/${post.id}`,
+                `http://localhost/community/posts/${post.id}`,
                 {
                     method: "PATCH",
                     headers: {
@@ -137,7 +137,7 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
 
         try {
             const response = await fetch(
-                `http://localhost:8002/posts/${post.id}`,
+                `http://localhost/community/posts/${post.id}`,
                 {
                     method: "PATCH",
                     headers: {

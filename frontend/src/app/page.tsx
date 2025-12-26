@@ -16,7 +16,7 @@ export default function Home() {
           </div>
           <div className="relative z-10 max-w-4xl px-4 w-full">
             <h1 className="text-5xl md:text-7xl font-serif text-white font-bold mb-6 leading-tight drop-shadow-lg">
-              Unlock the Value <br /> of Your Land
+              Cùng Bắt Đầu <br /> Hành Trình Xanh
             </h1>
             <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto font-sans font-extralight">
               Cùng tham gia cách mạng Carbon của Việt Nam. Phân tích tiềm năng của bạn, hiểu rõ giá trị và kết nối với một tương lai bền vững.

@@ -1,12 +1,29 @@
 services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   search-service:
     build:
       context: ./search
     container_name: search-service
     env_file:
       - .env
-    ports:
-      - "8001:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.search.rule=PathPrefix(`/search`)"
+      - "traefik.http.routers.search.middlewares=search-strip"
+      - "traefik.http.middlewares.search-strip.stripprefix.prefixes=/search"
+      - "traefik.http.services.search.loadbalancer.server.port=80"
+
 
   community-service:
     build:
@@ -14,14 +31,24 @@ services:
     container_name: community-service
     env_file:
       - .env
-    ports:
-      - "8002:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.community.rule=PathPrefix(`/community`)"
+      - "traefik.http.routers.community.middlewares=community-strip"
+      - "traefik.http.middlewares.community-strip.stripprefix.prefixes=/community"
+      - "traefik.http.services.community.loadbalancer.server.port=80"
 
-  # map-service:
-  #   build:
-  #     context: ./map
-  #   container_name: map-service
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "8003:80"
+  biomass-service:
+    build:
+      context: ./biomass
+    container_name: biomass-service
+    env_file:
+      - .env
+    volumes:
+      - ./preliminary-biomass-estimation.tif:/app/preliminary-biomass-estimation.tif
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.biomass.rule=PathPrefix(`/biomass`)"
+      - "traefik.http.routers.biomass.middlewares=biomass-strip"
+      - "traefik.http.middlewares.biomass-strip.stripprefix.prefixes=/biomass"
+      - "traefik.http.services.biomass.loadbalancer.server.port=80"

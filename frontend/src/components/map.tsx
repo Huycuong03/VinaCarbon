@@ -48,7 +48,7 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
 
         try{
             const response = await fetch(
-                "http://localhost:8003",
+                "http://localhost/biomass",
                 {
                     method: "POST",
                     headers: {

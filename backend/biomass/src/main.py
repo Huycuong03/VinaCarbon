@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from rasterio.mask import mask
 from shapely.geometry import MultiPolygon, Polygon, shape
+from src.settings import SETTINGS
 
 app = FastAPI()
 
@@ -31,7 +32,7 @@ def get_analysis(geojson: dict):
             detail=f"Geometry type {geom.geom_type} is not supported. Please use Polygon or MultiPolygon",
         )
 
-    with rasterio.open("C:/Users/caohu/Downloads/biomass_map.tif") as src:
+    with rasterio.open(SETTINGS.preliminary_biomass_estimation_path) as src:
         try:
             image, transform = mask(src, polygons, crop=True, filled=False)
             image = image.astype("float32")

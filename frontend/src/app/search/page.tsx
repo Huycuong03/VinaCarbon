@@ -9,7 +9,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     let documents: DocumentMetaData[] = Array.from({ length: 3 });
 
     if (query !== undefined) {
-        const response = await fetch(`http://localhost:8001/?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`http://localhost/search/?query=${encodeURIComponent(query)}`);
         const data: SearchResult = await response.json();
         documents = data.results.map((hit) => {
             const mapped: DocumentMetaData = {

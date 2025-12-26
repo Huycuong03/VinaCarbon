@@ -171,7 +171,7 @@ export default function ProfilePage() {
                 <div className="border-t border-gray-200 mb-10"></div>
 
                 <div className="space-y-6">
-                    {mockPosts.map((post) => <PostCard post={post} user={DEFAULT_USER} />)}
+                    {mockPosts.map((post) => <PostCard key={post.id} post={post} user={DEFAULT_USER} />)}
                 </div>
             </div>
         </div>

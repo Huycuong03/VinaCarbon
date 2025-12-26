@@ -23,8 +23,8 @@ export default function CommunityPage() {
         try {
             setLoading(true);
             const url = continuationToken
-                ? `http://localhost:8002/posts?continuation=${encodeURIComponent(continuationToken)}`
-                : 'http://localhost:8002/posts';
+                ? `http://localhost/community/posts?continuation=${encodeURIComponent(continuationToken)}`
+                : 'http://localhost/community/posts';
             const res = await fetch(url);
             const { documents: data, continuation }: { documents: Post[], continuation: string | null } = await res.json();
             setPosts((prev) => [...prev, ...data]);
@@ -78,7 +78,7 @@ export default function CommunityPage() {
 
         try {
             const response = await fetch(
-                `http://localhost:8002/posts`,
+                `http://localhost/community/posts`,
                 {
                     method: "POST",
                     headers: {
