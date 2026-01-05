@@ -47,34 +47,41 @@ export function PostCard({ post, user }: { post: Post, user: User | undefined })
 }
 
 function LikeButton({ post, user }: { post: Post, user: User | undefined }) {
-    const [like, setLike] = useState<{ liked: boolean, likes: number }>({ liked: false, likes: post.likes.length });
+    const [like, setLike] = useState<{ liked: boolean; likes: number }>({
+        liked: false,
+        likes: post.likes.length,
+    });
+
+    const isDisabled = !user;
 
     useEffect(() => {
         if (!user) return;
 
-        const liked = post.likes.some(liker => liker.email === user?.email);
-        setLike((prev) => ({ liked: liked, likes: prev.likes }));
-    }, []);
+        const liked = post.likes.some(liker => liker.email === user.email);
+        setLike(prev => ({ liked, likes: prev.likes }));
+    }, [user, post.likes]);
 
     async function handleLike() {
         if (!user) return;
 
         const newLiked = !like.liked;
-        const newLikes = newLiked ? (like.likes + 1) : (like.likes - 1);
+        const newLikes = newLiked ? like.likes + 1 : like.likes - 1;
 
-        const update = newLiked ? ([
-            {
-                "op": "add",
-                "path": "/likes/-",
-                "value": user
-            }
-        ]) : ([
-            {
-                "op": "replace",
-                "path": "/likes",
-                "value": post.likes.filter(liker => liker.email !== user.email)
-            }
-        ]);
+        const update = newLiked
+            ? [
+                {
+                    op: "add",
+                    path: "/likes/-",
+                    value: user,
+                },
+            ]
+            : [
+                {
+                    op: "replace",
+                    path: "/likes",
+                    value: post.likes.filter(liker => liker.email !== user.email),
+                },
+            ];
 
         try {
             const response = await fetch(
@@ -98,17 +105,31 @@ function LikeButton({ post, user }: { post: Post, user: User | undefined }) {
         }
     }
 
-
     return (
-        <button className={`flex items-center gap-2 cursor-pointer ${like.liked && "text-red-500"} hover:text-red-500 transition-colors`} onClick={handleLike}>
-            <Heart size={20} /> {like.likes}
-        </button>
+        <div className="relative inline-flex group">
+            <button
+                disabled={isDisabled}
+                aria-disabled={isDisabled}
+                onClick={handleLike}
+                className={`
+                    flex items-center gap-2 transition-colors
+                    ${like.liked ? "text-red-500" : "text-gray-600"}
+                    ${isDisabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:text-red-500"}
+                `}
+            >
+                <Heart size={20} /> {like.likes}
+            </button>
+        </div>
     );
 }
+
 
 function CommentSection({ post, user }: { post: Post, user: User | undefined }) {
     const [comments, setComments] = useState<Comment[]>(post.comments);
     const commentInput = useRef<HTMLInputElement>(null);
+    const isDisabled = !user;
 
     async function handleComment() {
         if (!user) return;
@@ -183,15 +204,21 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
                 <input
                     ref={commentInput}
                     type="text"
-                    placeholder="Write a comment..."
-                    className="flex-1 bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                    disabled={isDisabled}
+                    placeholder={isDisabled ? "Log in to write a comment" : "Write a comment..."}
+                    className={`
+                        w-full bg-gray-50 rounded-lg px-3 py-2 text-sm
+                        focus:outline-none transition-opacity
+                        ${isDisabled ? "cursor-not-allowed opacity-50" : "focus:ring-2 focus:ring-forest"}
+                    `}
                     onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" && !isDisabled) {
                             handleComment();
                         }
                     }}
                 />
             </div>
+
         </div>
     );
 }

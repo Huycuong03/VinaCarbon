@@ -17,4 +17,5 @@ export interface NavItem {
   id: Page;
   label: string;
   icon?: any;
+  restricted: boolean
 };

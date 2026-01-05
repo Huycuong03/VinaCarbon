@@ -16,6 +16,7 @@ export default function CommunityPage() {
     const [loading, setLoading] = useState(false);
     const observerTarget = useRef<HTMLDivElement>(null);
     const postInput = useRef<HTMLInputElement>(null);
+    const isDisabled = !session?.user;
 
     const loadPosts = useCallback(async () => {
         if (loading || (continuationToken === null && posts.length > 0)) return;
@@ -113,10 +114,15 @@ export default function CommunityPage() {
                             <input
                                 ref={postInput}
                                 type="text"
-                                placeholder="Share your experience or ask a question..."
-                                className="flex-1 bg-gray-50 rounded-xl px-4 focus:outline-none"
+                                disabled={isDisabled}
+                                placeholder={isDisabled ? "Log in to write a comment" : "Write a comment..."}
+                                className={`
+                                    w-full bg-gray-50 rounded-lg px-3 py-2 text-sm
+                                    focus:outline-none transition-opacity
+                                    ${isDisabled ? "cursor-not-allowed opacity-50" : "focus:ring-2 focus:ring-forest"}
+                                `}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
+                                    if (e.key === "Enter" && !isDisabled) {
                                         handlePost();
                                     }
                                 }}

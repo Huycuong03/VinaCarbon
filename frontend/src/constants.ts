@@ -31,15 +31,15 @@ export const FEATURED_ARTICLES: Article[] = [
 ];
 
 export const NAV_ITEMS: NavItem[] = [
-    { id: Page.HOME, label: 'Trang Chủ' },
-    { id: Page.SEARCH, label: 'Tài Liệu' },
-    { id: Page.ASSISTANT, label: 'Trợ Lý AI' },
-    { id: Page.MAP, label: 'Bản Đồ' },
-    { id: Page.COMMUNITY, label: 'Cộng Đồng' },
+    { id: Page.HOME, label: 'Trang Chủ', restricted: false },
+    { id: Page.SEARCH, label: 'Tài Liệu', restricted: false },
+    { id: Page.ASSISTANT, label: 'Trợ Lý AI', restricted: true },
+    { id: Page.MAP, label: 'Bản Đồ', restricted: false },
+    { id: Page.COMMUNITY, label: 'Cộng Đồng', restricted: false },
 ];
 
 export const DEFAULT_USER: {name: string, image: string} = {
-  name: "Default User",
+  name: "default-user",
   image: "https://static.vecteezy.com/system/resources/previews/036/280/651/original/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg"
 }
 

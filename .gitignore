@@ -3,3 +3,4 @@
 **/__pycache__/
 frontend/.next/dev
 frontend/node_modules
+backend/preliminary-biomass-estimation.tif

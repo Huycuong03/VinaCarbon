@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
-import { signIn, signOut } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Page, User } from "@/types/common";
@@ -14,7 +14,7 @@ export function UserAvatar({ user }: { user: User }) {
     return (
         <button
             onClick={() => {
-                if (user?.name) {
+                if (user?.name && user.name !== DEFAULT_USER.name) {
                     const slug = user.email?.split("@")[0];
                     router.push(`${Page.PROFILE}/${slug}`);
                 }
@@ -53,18 +53,44 @@ export function NavBar() {
                 </div>
 
                 <div className="hidden md:flex gap-8">
-                    {NAV_ITEMS.map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => {
-                                router.push(item.id);
-                            }}
-                            className={`text-sm font-sans p-2 rounded-lg cursor-pointer hover:bg-charcoal/3 hover:scale-[1.05] hover:text-forest transition-all ${page === item.id ? 'text-forest font-bold' : 'text-gray-600 font-normal'}`}
-                        >
-                            {item.label}
-                        </button>
-                    ))}
+                    {NAV_ITEMS.map(item => {
+                        const isRestricted = item.restricted === true;
+                        const isUnauthed = !session?.user;
+                        const isDisabled = isRestricted && isUnauthed;
+
+                        return (
+                            <div key={item.id} className="relative group">
+                                <button
+                                    disabled={isDisabled}
+                                    aria-disabled={isDisabled}
+                                    onClick={() => {
+                                        if (!isDisabled) {
+                                            router.push(item.id);
+                                        }
+                                    }}
+                                    className={`
+                                        text-sm font-sans p-2 rounded-lg transition-all
+                                        ${page === item.id
+                                                            ? "text-forest font-bold"
+                                                            : "text-gray-600 font-normal"}
+                                        ${isDisabled
+                                                            ? "cursor-not-allowed opacity-40"
+                                                            : "cursor-pointer hover:bg-charcoal/3 hover:scale-[1.05] hover:text-forest"}
+                                    `}
+                                >
+                                    {item.label}
+                                </button>
+
+                                {isDisabled && (
+                                    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 whitespace-nowrap bg-charcoal text-white text-xs px-3 py-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Đăng nhập để sử dụng tính năng này.
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
+
 
                 <div className="flex items-center gap-4">
                     {
