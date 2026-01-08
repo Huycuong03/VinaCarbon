@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from 'remark-gfm';
 
-import { Message, MessageContent } from "@/types/assistant";
+import { Message } from "@/types/assistant";
 import { ASSISTANT } from "@/constants";
 
 import { BotMessageSquare, SendHorizontal, MessageCirclePlus } from "lucide-react"
@@ -104,7 +104,8 @@ export function ChatBox() {
                             <div className="w-16 h-16 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-6 text-forest ">
                                 <BotMessageSquare size={32} />
                             </div>
-                            <h1 className="text-3xl font-bold text-forest mb-2">{ASSISTANT.welcomeMessage}</h1>
+                            <h1 className="text-3xl font-bold text-forest mb-2">{ASSISTANT.name}</h1>
+                            <p className="text-gray-400 text-lg">{ASSISTANT.subtitle}</p>
                             <p className="mt-4 text-sm text-gray-500 italic max-w-md mx-auto">{ASSISTANT.description}</p>
                         </div>
 
@@ -163,7 +164,7 @@ export function ChatBox() {
                     </button>
                 </div>
                 <p className="text-center text-[10px] text-gray-500 mt-2">
-                    AI Assistant can make mistakes. Verify critical project information.
+                    Trợ lý AI có thể mắc lỗi. Hãy kiểm tra các thông tin quan trọng.
                 </p>
             </div>
         </div>
@@ -171,6 +172,7 @@ export function ChatBox() {
 };
 
 export function MessageBubble({ message }: { message: Message }) {
+    if (message.type === "file_search_call") return null;
     return (
         <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[65%] rounded-2xl px-5 py-3.5 ${message.role === 'user'
@@ -178,8 +180,7 @@ export function MessageBubble({ message }: { message: Message }) {
                 : 'border border-gray-400 rounded-tl-none'
                 }`}>
                 <div className="text-[15px] leading-relaxed">
-                    {message.type === "file_search_call" && <ReactMarkdown>**File Search Tool**: Completed!</ReactMarkdown>}
-                    {message.type === "message" && <ReactMarkdown remarkPlugins={[remarkGfm]}>{stringifyMessageWithFootnotes(message)}</ReactMarkdown>}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{stringifyMessageWithFootnotes(message)}</ReactMarkdown>
                 </div>
             </div>
         </div>

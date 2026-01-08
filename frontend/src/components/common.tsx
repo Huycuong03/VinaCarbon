@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Page, User } from "@/types/common";
@@ -26,6 +26,17 @@ export function UserAvatar({ user }: { user: User }) {
                 alt={user.name || DEFAULT_USER.name}
                 className="w-10 h-10 rounded-full object-cover border border-gray-200 hover:scale-105 transition-transform"
             />
+        </button>
+    );
+}
+
+export function SignOutButton() {
+    return (
+        <button 
+            className="px-5 py-1.5 bg-forest cursor-pointer text-white rounded-lg text-sm font-bold hover:scale-[1.05] transition-all"
+            onClick={() => signOut()}
+        >
+            Đăng xuất
         </button>
     );
 }
@@ -71,11 +82,11 @@ export function NavBar() {
                                     className={`
                                         text-sm font-sans p-2 rounded-lg transition-all
                                         ${page === item.id
-                                                            ? "text-forest font-bold"
-                                                            : "text-gray-600 font-normal"}
+                                            ? "text-forest font-bold"
+                                            : "text-gray-600 font-normal"}
                                         ${isDisabled
-                                                            ? "cursor-not-allowed opacity-40"
-                                                            : "cursor-pointer hover:bg-charcoal/3 hover:scale-[1.05] hover:text-forest"}
+                                            ? "cursor-not-allowed opacity-40"
+                                            : "cursor-pointer hover:bg-charcoal/3 hover:scale-[1.05] hover:text-forest"}
                                     `}
                                 >
                                     {item.label}
@@ -96,7 +107,10 @@ export function NavBar() {
                     {
                         session?.user ?
                             (<UserAvatar user={session.user} />) :
-                            (<button className="hidden md:block bg-forest text-white px-5 py-2 rounded-full font-medium cursor-pointer hover:bg-forest/90 transition-colors text-sm" onClick={() => signIn("google")}>
+                            (<button 
+                                className="hidden md:block bg-forest text-white px-5 py-2 rounded-full font-medium cursor-pointer hover:bg-forest/90 transition-colors text-sm" 
+                                onClick={() => signIn("google")}
+                            >
                                 Đăng nhập
                             </button>)
                     }
