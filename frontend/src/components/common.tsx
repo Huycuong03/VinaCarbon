@@ -15,8 +15,8 @@ export function UserAvatar({ user }: { user: User }) {
         <button
             onClick={() => {
                 if (user?.name && user.name !== DEFAULT_USER.name) {
-                    const slug = user.email?.split("@")[0];
-                    router.push(`${Page.PROFILE}/${slug}`);
+                    const username = user.email?.split("@")[0];
+                    router.push(`${Page.PROFILE}/${username}`);
                 }
             }}
             className="hidden md:flex items-center justify-center cursor-pointer"

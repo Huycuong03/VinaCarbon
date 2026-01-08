@@ -49,6 +49,18 @@ export const dateFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
 })
 
+
+export function timeFormatter(timestamp: string): string {
+  const date = new Date(timestamp)
+
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+
 export function numberFormatter(n: number) {
   const formatted = String(n).padStart(3, "0");
   return formatted;
@@ -56,3 +68,14 @@ export function numberFormatter(n: number) {
 
 export const MAP_IMAGE_LAYER_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 export const MAP_REFERENCE_LAYER_URL = "https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+
+export const ASSISTANT = {
+    welcomeMessage: "Hello, its me, VinaCarbon",
+    starterPrompts: [
+    `Summarize the project requirements`,
+    `What are the key technical risks?`,
+    `Review the available documents`,
+    `What is the timeline for completion?`
+  ],
+    description: "Dont mind me, just dowing my job",
+}

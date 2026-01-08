@@ -9,7 +9,7 @@ import { MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
 import "leaflet-geotiff-2";
 import "leaflet-geotiff-2/dist/leaflet-geotiff-plotty";
 
-export function MapControls({ featureGroup }: { featureGroup: any }) {
+export function MapControls({ featureGroup, setStatistics }: { featureGroup: any, setStatistics: (stats: any) => void }) {
     const map = useMap();
     const [hasFeatures, setHasFeatures] = useState<boolean>(false);
     const drawTool = useRef(null)
@@ -40,6 +40,7 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
     const onClearFeatures = () => {
         featureGroup.current.clearLayers();
         setHasFeatures(false);
+        setStatistics(null);
     }
 
     const onAnalyze = async () => {
@@ -61,6 +62,10 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
             if (!response.ok) {
                 throw new Error(`Unexpected status: ${response.status}`);
             }
+
+            const statsHeader = response.headers.get("X-Statistics");
+            const stats = statsHeader ? JSON.parse(statsHeader) : null;
+            setStatistics(stats);
 
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
@@ -183,7 +188,7 @@ export function MapControls({ featureGroup }: { featureGroup: any }) {
     );
 };
 
-export default function Map() {
+export default function Map({setStatistics}: {setStatistics: (stats: any) => void}) {
     const map = useRef(null);
     const featureGroup = useRef(null);
 
@@ -192,7 +197,7 @@ export default function Map() {
             <TileLayer url={MAP_IMAGE_LAYER_URL} />
             <TileLayer url={MAP_REFERENCE_LAYER_URL} />
             <FeatureGroup ref={featureGroup} />
-            <MapControls featureGroup={featureGroup} />
+            <MapControls featureGroup={featureGroup} setStatistics={setStatistics}/>
         </MapContainer>
     );
 };

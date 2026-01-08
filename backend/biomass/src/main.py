@@ -1,8 +1,12 @@
+import io
+import json
+
 import numpy as np
 import rasterio
 import rasterio.io
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from rasterio.mask import mask
 from shapely.geometry import MultiPolygon, Polygon, shape
 from src.settings import SETTINGS
@@ -15,6 +19,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Statistics"],
 )
 
 
@@ -37,11 +42,19 @@ def get_analysis(geojson: dict):
             image, transform = mask(src, polygons, crop=True, filled=False)
             image = image.astype("float32")
 
-            biomass = np.abs(image[0])
+            biomass: np.ndarray = np.abs(image[0])
             valid = ~np.ma.getmaskarray(biomass)
-            min_val = biomass[valid].min()
-            max_val = biomass[valid].max()
-            biomass[valid] = (biomass[valid] - min_val) / (max_val - min_val)
+
+            area = np.count_nonzero(valid) / 100
+            min_biomass = biomass[valid].min()
+            max_biomass = biomass[valid].max()
+            mean_biomass = biomass[valid].mean()
+            total_biomass = (biomass / 100)[valid].sum()
+            carbon_stock = total_biomass * 0.47
+
+            biomass[valid] = (biomass[valid] - min_biomass) / (
+                max_biomass - min_biomass
+            )
             image[0] = biomass
 
         except ValueError as e:
@@ -62,4 +75,38 @@ def get_analysis(geojson: dict):
 
             geotiff_bytes = memfile.read()
 
-    return Response(content=geotiff_bytes, media_type="image/tiff")
+    headers = {
+        "X-Statistics": json.dumps(
+            {
+                "area": {
+                    "value": float(area),
+                    "unit": "ha",
+                },
+                "min_biomass": {
+                    "value": float(min_biomass),
+                    "unit": "Mg/ha",
+                },
+                "max_biomass": {
+                    "value": float(max_biomass),
+                    "unit": "Mg/ha",
+                },
+                "mean_biomass": {
+                    "value": float(mean_biomass),
+                    "unit": "Mg/ha",
+                },
+                "total_biomass": {
+                    "value": float(total_biomass),
+                    "unit": "Mg",
+                },
+                "carbon_stock": {
+                    "value": float(carbon_stock),
+                    "unit": "Mg",
+                },
+            }
+        ),
+        "Content-Disposition": 'attachment; filename="image.tif"',
+    }
+
+    return StreamingResponse(
+        io.BytesIO(geotiff_bytes), media_type="image/tiff", headers=headers
+    )
