@@ -68,7 +68,7 @@ export default function CommunityPage() {
         }
 
         const newPost: Post = {
-            id: `post-${numberFormatter(posts.length + 1)}`,
+            id: `post-${Date.now().toString()}`,
             author: session.user,
             created_at: new Date().toISOString(),
             content: newPostContent,
@@ -89,13 +89,15 @@ export default function CommunityPage() {
                 }
             );
 
-            if (response.status !== 204) {
-                throw new Error(`Unexpected status: ${response.status}`);
+            if (response.ok) {
+                setPosts((prev) => [newPost, ...prev]);
+            } else {
+                const error = await response.json();
+                throw new Error(error.detail);
             }
 
-            setPosts((prev) => [newPost, ...prev]);
         } catch (error) {
-            console.error("Failed to update like", error);
+            alert(error);
         }
     }
 
@@ -115,7 +117,7 @@ export default function CommunityPage() {
                                 ref={postInput}
                                 type="text"
                                 disabled={isDisabled}
-                                placeholder={isDisabled ? "Log in to write a comment" : "Write a comment..."}
+                                placeholder={"Hãy chia sẻ trải nghiệm của bạn ..."}
                                 className={`
                                     w-full bg-gray-50 rounded-lg px-3 py-2 text-sm
                                     focus:outline-none transition-opacity
@@ -137,7 +139,7 @@ export default function CommunityPage() {
                         {loading && (
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-8 h-8 border-4 border-gray/20 border-t-charcoal rounded-full animate-spin"></div>
-                                <span className="text-sm text-gray-500">Loading ...</span>
+                                <span className="text-sm text-gray-500">Đang tải ...</span>
                             </div>
                         )}
                     </div>

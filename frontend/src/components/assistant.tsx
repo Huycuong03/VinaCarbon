@@ -99,7 +99,7 @@ export function ChatBox() {
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="h-full flex flex-col items-center justify-center w-[calc(100wh-80px)] mx-auto w-full text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
                         <div>
                             <div className="w-16 h-16 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-6 text-forest ">
                                 <BotMessageSquare size={32} />
@@ -109,7 +109,7 @@ export function ChatBox() {
                             <p className="mt-4 text-sm text-gray-500 italic max-w-md mx-auto">{ASSISTANT.description}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[60%] pt-4">
                             {ASSISTANT.starterPrompts.map((prompt, idx) => (
                                 <button
                                     key={idx}
@@ -129,7 +129,7 @@ export function ChatBox() {
 
                 {isLoading && (
                     <div className="flex justify-start">
-                        <div className="bg-[#161B22] border border-gray-40030363D] rounded-2xl rounded-tl-none px-4 py-3">
+                        <div className="border border-gray-400 rounded-2xl rounded-tl-none px-4 py-3">
                             <div className="flex space-x-1">
                                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -158,7 +158,7 @@ export function ChatBox() {
                     <button
                         onClick={handleSendMessage}
                         disabled={!inputValue.trim() || isLoading}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                        className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                     >
                         <SendHorizontal />
                     </button>
@@ -200,9 +200,10 @@ export function stringifyMessageWithFootnotes(message: Message): string {
 
             for (const annotation of content.annotations) {
                 const index = footnoteCounter++;
+                const filename = annotation.filename.split(".")[0];
                 markers.push(`[${index}]`);
                 footnotes.push(
-                    `[${index}]: ${"https://google.com"} (${annotation.filename})`
+                    `[${index}]: search?query=${filename} (${filename})`
                 );
             }
 

@@ -1,3 +1,4 @@
+import { SignOutButton } from "@/components/common";
 import { PostCard } from "@/components/community";
 import { DEFAULT_USER } from "@/constants";
 import { Post } from "@/types/community";
@@ -150,16 +151,14 @@ export default function ProfilePage() {
                         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
                             <h2 className="text-2xl font-light text-charcoal capitalize">{profileData.username}</h2>
                             <div className="flex-1 flex justify-end">
-                                <button className="px-5 py-1.5 bg-forest cursor-pointer text-white rounded-lg text-sm font-bold hover:scale-[1.05] transition-all">
-                                    Đăng xuất
-                                </button>
+                                <SignOutButton />
                             </div>
                         </div>
 
                         <div className="flex justify-center md:justify-start gap-8 mb-6">
-                            <span><strong className="text-charcoal">{profileData.stats.posts}</strong> posts</span>
-                            <span><strong className="text-charcoal">{profileData.stats.supporters}</strong> supporters</span>
-                            <span><strong className="text-charcoal">{profileData.stats.connections}</strong> connections</span>
+                            <span><strong className="text-charcoal">{profileData.stats.posts}</strong> Bài đăng</span>
+                            <span><strong className="text-charcoal">{profileData.stats.supporters}</strong> Người theo dõi</span>
+                            <span><strong className="text-charcoal">{profileData.stats.connections}</strong> Bạn bè</span>
                         </div>
 
                         <div className="space-y-1">

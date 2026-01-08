@@ -1,6 +1,13 @@
+import pickle
 from typing import Any
 
 from src.settings import SETTINGS
+
+with open("model/text-embedder.pkl", "rb") as f:
+    text_embedder = pickle.load(f)
+
+with open("model/content-moderator.pkl", "rb") as f:
+    content_moderator = pickle.load(f)
 
 
 def clean_document(document: dict[str, Any]) -> dict[str, Any]:
@@ -8,9 +15,11 @@ def clean_document(document: dict[str, Any]) -> dict[str, Any]:
     return document
 
 
-async def moderate_content(content: str) -> bool:
-    banned_words = {"fuck", "shit"}
-    return not any(word in content.lower().split() for word in banned_words)
+def moderate_content(content: str) -> bool:
+    embeddings = text_embedder.transform([content])
+    label = content_moderator.predict(embeddings)[0]
+    passed = label == 0
+    return passed
 
 
 def construct_query(query_params: dict | None) -> tuple[str, list[dict[str, Any]]]:

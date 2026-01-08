@@ -4,7 +4,7 @@ from urllib.parse import quote, unquote
 from azure.cosmos.aio import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError, CosmosResourceNotFoundError
 from cachetools import TTLCache
-from fastapi import BackgroundTasks, FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import SETTINGS
 from src.utils import clean_document, construct_query, moderate_content
@@ -32,26 +32,20 @@ app.add_middleware(
 
 
 @app.post("/{container_name}", status_code=status.HTTP_204_NO_CONTENT)
-async def create_document(
-    container_name: str, document: dict, background_tasks: BackgroundTasks
-):
+async def create_document(container_name: str, document: dict):
     try:
+        passed = moderate_content(document["content"])
+        if not passed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bài đăng của bạn đã bị gỡ vì vi phạm tiêu chuẩn cộng đồng.",
+            )
         container = database.get_container_client(container_name)
         await container.create_item(document)
-        background_tasks.add_task(run_moderation, container_name, document)
     except CosmosResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except CosmosHttpResponseError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-
-
-async def run_moderation(container_name: str, document: dict):
-    passed = True
-    if "content" in document:
-        passed = await moderate_content(document["content"])
-
-    if not passed:
-        await delete_document(container_name, document_id=document["id"])
 
 
 @app.get("/{container_name}")
