@@ -3,36 +3,40 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
+import { UserAvatar } from "@/components/common";
 import { PostCard } from "@/components/community";
+import { X, Globe, Plus } from "lucide-react";
 
 import { Post } from "@/types/community";
-import { DEFAULT_USER, numberFormatter } from "@/constants";
-import { UserAvatar } from "@/components/common";
+import { getRandomString } from "@/lib/utils";
+import { formatDate } from "@/lib/formatters";
+import { BACKEND_URL, BACKEND_API_ENDPOINT } from "@/constants";
 
 export default function CommunityPage() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [posts, setPosts] = useState<Post[]>([]);
-    const [continuationToken, setContinuationToken] = useState<string | null>(null);
+    const [continuationToken, setContinuationToken] = useState<string>(`${Date.now()}#${getRandomString()}`);
     const [loading, setLoading] = useState(false);
+
+    const [isCreatingPost, setIsCreatingPost] = useState(false);
+    const [newPostContent, setNewPostContent] = useState('');
+    const [selectedImagesPreviews, setSelectedImagePreviews] = useState<string[]>([]);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const observerTarget = useRef<HTMLDivElement>(null);
-    const postInput = useRef<HTMLInputElement>(null);
-    const isDisabled = !session?.user;
 
     const loadPosts = useCallback(async () => {
-        if (loading || (continuationToken === null && posts.length > 0)) return;
-
-        try {
-            setLoading(true);
-            const url = continuationToken
-                ? `http://localhost/community/posts?continuation=${encodeURIComponent(continuationToken)}`
-                : 'http://localhost/community/posts';
-            const res = await fetch(url);
-            const { documents: data, continuation }: { documents: Post[], continuation: string | null } = await res.json();
-            setPosts((prev) => [...prev, ...data]);
-            setContinuationToken(continuation);
-        } finally {
-            setLoading(false);
-        }
+        if (loading) return;
+        setLoading(true);
+        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}`, {
+            headers: {
+                "X-Continuation-Token": continuationToken
+            }
+        });
+        const documents: Post[] = await response.json();
+        setPosts((prev) => [...prev, ...documents]);
+        setLoading(false);
 
     }, [loading, continuationToken]);
 
@@ -57,83 +61,161 @@ export default function CommunityPage() {
         };
     }, [loadPosts]);
 
-    async function handlePost() {
+    const handleCancelCreate = () => {
+        setIsCreatingPost(false);
+        setNewPostContent('');
+        setSelectedImagePreviews([]);
+    };
+
+    const handleImageUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            setSelectedImages(prev => [...prev, ...files]);
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setSelectedImagePreviews(prev => [...prev, reader.result as string]);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removeSelectedImage = (index: number) => {
+        setSelectedImagePreviews(prev => prev.filter((_, i) => i !== index));
+        setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    };
+
+    async function handleSubmitPost() {
         if (!session?.user) return;
 
-        const newPostContent = postInput.current?.value.trim();
-        if (!newPostContent) return;
+        const content = newPostContent.trim();
+        if (!content) return;
 
-        if (postInput.current) {
-            postInput.current.value = "";
+        const formData = new FormData();
+        formData.append('content', newPostContent);
+        selectedImages.forEach((file) => {
+            formData.append('images', file);
+        });
+        const headers: HeadersInit = {
+            ...(session?.user?.email && { 'X-Credential': session.user.email, }),
+            ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
         }
+        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}`, {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        });
 
-        const newPost: Post = {
-            id: `post-${Date.now().toString()}`,
-            author: session.user,
-            created_at: new Date().toISOString(),
-            content: newPostContent,
-            likes: [],
-            comments: [],
-            tags: []
-        }
+        const newPost: Post = await response.json();
 
-        try {
-            const response = await fetch(
-                `http://localhost/community/posts`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(newPost),
-                }
-            );
-
-            if (response.ok) {
-                setPosts((prev) => [newPost, ...prev]);
-            } else {
-                const error = await response.json();
-                throw new Error(error.detail);
-            }
-
-        } catch (error) {
-            alert(error);
+        if (response.ok) {
+            setPosts((prev) => [newPost, ...prev]);
+            handleCancelCreate();
+        } else {
+            alert(newPost.detail);
         }
     }
 
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="animate-fade-in">
-                <div className="bg-[url('https://picsum.photos/1920/1080?random=hero')] bg-cover bg-center bg-no-repeat bg-fixed bg-forest/50 bg-blend-darken text-white py-16 px-6 text-center">
+                <div className="bg-[url('https://picsum.photos/1920/1080?random=community')] bg-cover bg-center bg-no-repeat bg-fixed bg-forest/50 bg-blend-darken text-white py-16 px-6 text-center">
                     <h2 className="font-serif text-4xl font-bold mb-4 text-shadow-lg">Cộng Đồng Carbon</h2>
                     <p className="text-xl font-light opacity-90">Kết nối, Chia sẻ, và Cùng Phát triển.</p>
                 </div>
 
-                <div className="max-w-3xl mx-auto -mt-8 px-6 pb-20">
-                    <div className="bg-white p-6 rounded-2xl shadow-lg mb-8 hover:scale-[1.05] transition-all">
-                        <div className="flex gap-4">
-                            <UserAvatar user={session?.user || DEFAULT_USER} />
-                            <input
-                                ref={postInput}
-                                type="text"
-                                disabled={isDisabled}
-                                placeholder={"Hãy chia sẻ trải nghiệm của bạn ..."}
-                                className={`
-                                    w-full bg-gray-50 rounded-lg px-3 py-2 text-sm
-                                    focus:outline-none transition-opacity
-                                    ${isDisabled ? "cursor-not-allowed opacity-50" : "focus:ring-2 focus:ring-forest"}
-                                `}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !isDisabled) {
-                                        handlePost();
-                                    }
-                                }}
-                            />
-                        </div>
+                <div className="max-w-4xl mx-auto -mt-8 px-6 pb-20">
+                    <div className={`bg-white rounded-2xl shadow-lg mb-8 overflow-hidden transition-all duration-300 ${isCreatingPost ? 'p-0' : 'p-6'}`}>
+                        {!isCreatingPost ? (
+                            <div className="flex gap-4 items-center">
+                                <UserAvatar user={session?.user} />
+                                <input
+                                    type="text"
+                                    readOnly
+                                    disabled={status === "unauthenticated"}
+                                    onClick={() => setIsCreatingPost(true)}
+                                    placeholder="Hãy chia sẻ trải nghiệm của bạn ..."
+                                    className="flex-1 bg-gray-100/50 hover:bg-gray-100 rounded-full px-5 py-3 text-charcoal/70 focus:outline-none transition-colors cursor-pointer"
+                                />
+                            </div>
+                        ) : (
+                            <div className="animate-fade-in">
+                                <div className="p-5">
+                                    <div className="flex justify-between">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <UserAvatar user={session?.user} />
+                                            <div>
+                                                <h4 className="font-bold text-charcoal capitalize">{session?.user?.name || "Unknown"}</h4>
+                                                <span className="text-xs text-gray-500">{formatDate(Date.now())}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button onClick={handleCancelCreate} className="cursor-pointer p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <textarea
+                                        autoFocus
+                                        value={newPostContent}
+                                        onChange={(e) => setNewPostContent(e.target.value)}
+                                        placeholder="Hãy chia sẻ trải nghiệm của bạn ..."
+                                        className="bg-white w-full min-h-[120px] text-charcoal placeholder-gray-300 focus:outline-none resize-none border-none p-0"
+                                    />
+
+                                    <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {selectedImagesPreviews.map((img, idx) => (
+                                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border border-gray-100 shadow-sm">
+                                                <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <button
+                                                        onClick={() => removeSelectedImage(idx)}
+                                                        className="cursor-pointer p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all transform hover:scale-110 shadow-lg"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <button
+                                            onClick={handleImageUploadClick}
+                                            className="cursor-pointer aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-forest hover:text-forest transition-all bg-gray-50/50"
+                                        >
+                                            <Plus size={24} />
+                                            <span className="text-[10px] font-bold mt-1 uppercase">Thêm ảnh</span>
+                                        </button>
+                                    </div>
+
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handleFileChange}
+                                    />
+
+                                    <button
+                                        onClick={handleSubmitPost}
+                                        disabled={!newPostContent.trim()}
+                                        className={`cursor-pointer w-full mt-6 py-4 rounded-2xl font-bold text-lg transition-all ${(newPostContent.trim()) ? 'bg-forest text-white shadow-xl shadow-forest/20 hover:bg-forest/90 transform hover:-translate-y-0.5' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                    >
+                                        Đăng bài ngay
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
-                        {posts.map((post, i) => <PostCard key={i} post={post} user={session?.user} />)}
+                        {posts.map((post, i) => <PostCard key={i} post={post} user={session?.user} apiKey={session?.apiKey} />)}
                     </div>
                     <div ref={observerTarget} className="py-8 flex justify-center w-full">
                         {loading && (

@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from 'remark-gfm';
 
 import { Message } from "@/types/assistant";
-import { ASSISTANT } from "@/constants";
+import { ASSISTANT, BACKEND_API_ENDPOINT, BACKEND_URL } from "@/constants";
 
 import { BotMessageSquare, SendHorizontal, MessageCirclePlus } from "lucide-react"
 
@@ -17,30 +17,31 @@ export function ChatBox() {
             window.location.href = '/signin'
         },
     })
-    const [conversationId, setConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        async function loadMessages() {
+            const headers: HeadersInit = {
+                ...(session?.user?.email && { 'X-Credential': session.user.email, }),
+                ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
+            }
+            const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.ASSISTANT}`, { headers });
+            const prevMessages: Message[] = await response.json();
+            if (response.ok) {
+                setMessages([...prevMessages].reverse());
+
+            } else {
+                alert(prevMessages.detail);
+            }
+        }
+
         if (status === "authenticated") {
-            const id = session.user?.email?.split("@")[0];
-            if (id) setConversationId(id);
+            loadMessages();
         }
     }, [status]);
-
-    useEffect(() => {
-        async function loadMessages(id: string) {
-            const response = await fetch(`http://localhost/assistant/?id=${id}`);
-            const prevMessages: Message[] = await response.json();
-            setMessages([...prevMessages].reverse());
-        }
-
-        if (conversationId) {
-            loadMessages(conversationId);
-        }
-    }, [conversationId]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -49,14 +50,12 @@ export function ChatBox() {
     }, [messages, isLoading]);
 
     const handleSendMessage = async () => {
-        if (!conversationId) return;
         if (!inputValue.trim() || isLoading) return;
 
         const id = messages.length;
 
         const userMessage: Message = {
             id: (id + 1).toString(),
-            type: "message",
             role: 'user',
             content: [{
                 type: "input_text",
@@ -68,12 +67,15 @@ export function ChatBox() {
         setInputValue('');
         setIsLoading(true);
 
-        const response = await fetch(`http://localhost/assistant/?id=${conversationId}`,
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+            ...(session?.user?.email && { 'X-Credential': session.user.email, }),
+            ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
+        }
+        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.ASSISTANT}`,
             {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: headers,
                 body: JSON.stringify({
                     content: inputValue
                 })
@@ -82,15 +84,40 @@ export function ChatBox() {
 
         const reply: Message[] = await response.json();
 
-        setMessages(prev => [...prev, ...reply]);
-        setIsLoading(false);
+        if (response.ok) {
+            setMessages(prev => [...prev, ...reply]);
+            setIsLoading(false);
+        } else {
+            alert(reply.detail);
+        }
     };
 
+    const handleRenewConversation = async () => {
+        setMessages([]);
+
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+            ...(session?.user?.email && { 'X-Credential': session.user.email, }),
+            ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
+        }
+        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.ASSISTANT}`,
+            {
+                method: "DELETE",
+                headers: headers
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.detail);
+        }
+    }
+
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden ">
             <div className="px-6 py-4 flex justify-end items-center">
                 <button
-                    onClick={() => setMessages([])}
+                    onClick={handleRenewConversation}
                     className="cursor-pointer text-xs text-gray-400 px-3 py-1.5 rounded-md"
                 >
                     <MessageCirclePlus />
@@ -100,9 +127,9 @@ export function ChatBox() {
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center w-[calc(100wh-80px)] mx-auto w-full text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                        <div>
-                            <div className="w-16 h-16 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-6 text-forest ">
-                                <BotMessageSquare size={32} />
+                        <div className="flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 pb-10 flex items-center">
+                                <img src="/logo.png"/>
                             </div>
                             <h1 className="text-3xl font-bold text-forest mb-2">{ASSISTANT.name}</h1>
                             <p className="text-gray-400 text-lg">{ASSISTANT.subtitle}</p>
@@ -172,14 +199,13 @@ export function ChatBox() {
 };
 
 export function MessageBubble({ message }: { message: Message }) {
-    if (message.type === "file_search_call") return null;
     return (
         <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[65%] rounded-2xl px-5 py-3.5 ${message.role === 'user'
-                ? 'bg-forest text-white rounded-tr-none'
+            <div className={`w-fit max-w-[60%] break-words rounded-2xl px-5 py-1.5 ${message.role === 'user'
+                ? 'bg-blue-600 text-white rounded-tr-none'
                 : 'border border-gray-400 rounded-tl-none'
                 }`}>
-                <div className="text-[15px] leading-relaxed">
+                <div className={`text-[15px] leading-relaxed prose max-w-none ${message.role === "user" && "text-white"}`}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{stringifyMessageWithFootnotes(message)}</ReactMarkdown>
                 </div>
             </div>
@@ -203,7 +229,7 @@ export function stringifyMessageWithFootnotes(message: Message): string {
                 const filename = annotation.filename.split(".")[0];
                 markers.push(`[${index}]`);
                 footnotes.push(
-                    `[${index}]: search?query=${filename} (${filename})`
+                    `[${index}]: https://google.com (${filename})`
                 );
             }
 

@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { User } from "@/types/common";
-import { Post, Comment } from "@/types/community";
-import { Heart, MessageSquare, Share2 } from "lucide-react";
-
-import { dateFormatter, numberFormatter, DEFAULT_USER } from "@/constants";
+import { Heart, MessageSquare, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { UserAvatar } from "./common";
 
-export function PostCard({ post, user }: { post: Post, user: User | undefined }) {
+
+import { User } from "@/types/common";
+import { Post, Comment } from "@/types/community";
+import { formatDate, formatNumber } from "@/lib/formatters";
+import { BACKEND_URL, BACKEND_API_ENDPOINT } from "@/constants";
+
+
+export function PostCard({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string}) {
     const [expanded, setExpanded] = useState<boolean>(false);
 
     return (
@@ -19,34 +22,87 @@ export function PostCard({ post, user }: { post: Post, user: User | undefined })
                     <UserAvatar user={post.author} />
                     <div>
                         <h4 className="font-bold text-charcoal capitalize">{post.author.name}</h4>
-                        <span className="text-xs text-gray-500">{dateFormatter.format(new Date(post.created_at))}</span>
+                        <span className="text-xs text-gray-500">{formatDate(post.created_at)}</span>
                     </div>
                 </div>
                 <p className="text-charcoal mb-4 text-lg">{post.content}</p>
-                {post.image && (
-                    <img src={post.image} alt="Post content" className="w-full h-64 object-cover rounded-xl mb-4" />
-                )}
-                <div className="flex gap-2 mb-4">
-                    {post.tags.map(tag => (
-                        <span key={tag} className="text-xs bg-[#F5F1EA] text-forest px-2 py-1 rounded-md font-medium">{tag}</span>
-                    ))}
-                </div>
+                {post.images.length > 0 && <ImageCarousel images={post.images} />}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-gray-500">
-                    <LikeButton post={post} user={user} />
-                    <button className="flex items-center gap-2 cursor-pointer" onClick={() => setExpanded((prev) => !prev)}>
-                        <MessageSquare size={20} /> {post.comments.length} Comments
+                    <LikeButton post={post} user={user} apiKey={apiKey}/>
+                    <button className='cursor-pointer flex items-center gap-2 transition-colors py-1 px-2 rounded-lg hover:text-forest hover:bg-forest/5' onClick={() => setExpanded((prev) => !prev)}>
+                        <MessageSquare size={20} />  <span className="text-sm font-semibold">{post.comments.length} Comments</span>
                     </button>
-                    <button className="flex items-center gap-2 cursor-pointer">
-                        <Share2 size={20} /> Share
+                    <button className="cursor-pointer flex items-center gap-2 hover:text-blue-500 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50">
+                        <Share2 size={20} />  <span className="text-sm font-semibold">Share</span>
                     </button>
                 </div>
-                {expanded && <CommentSection post={post} user={user} />}
+                {expanded && <CommentSection post={post} user={user} apiKey={apiKey}/>}
             </div>
         </div>
     );
 }
 
-function LikeButton({ post, user }: { post: Post, user: User | undefined }) {
+function ImageCarousel({ images }: { images: string[] }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    if (!images || images.length === 0) return null;
+
+    const next = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prev = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    return (
+        <div className="relative group w-full aspect-square sm:aspect-video rounded-2xl overflow-hidden border border-gray-100 mb-4 bg-black/5">
+            <div
+                className="flex transition-transform duration-500 ease-out h-full"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
+                {images.map((img, idx) => (
+                    <img
+                        key={idx}
+                        src={img}
+                        alt={`Post content ${idx + 1}`}
+                        className="w-full h-full object-cover flex-shrink-0"
+                    />
+                ))}
+            </div>
+
+            {images.length > 1 && (
+                <>
+                    <button
+                        onClick={prev}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <button
+                        onClick={next}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                        {images.map((_, idx) => (
+                            <div
+                                key={idx}
+                                className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-4' : 'bg-white/50'}`}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+function LikeButton({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string }) {
     const [like, setLike] = useState<{ liked: boolean; likes: number }>({
         liked: false,
         likes: post.likes.length,
@@ -82,51 +138,50 @@ function LikeButton({ post, user }: { post: Post, user: User | undefined }) {
                     value: post.likes.filter(liker => liker.email !== user.email),
                 },
             ];
-
-        try {
-            const response = await fetch(
-                `http://localhost/community/posts/${post.id}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(update),
-                }
-            );
-
-            if (response.status !== 204) {
-                throw new Error(`Unexpected status: ${response.status}`);
-            }
-
-            setLike({ liked: newLiked, likes: newLikes });
-        } catch (error) {
-            console.error("Failed to update like", error);
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+            ...(user?.email && { 'X-Credential': user.email, }),
+            ...(apiKey && { 'X-Api-Key': apiKey, }),
         }
+        const response = await fetch(
+            `${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}${post.id}`,
+            {
+                method: "PATCH",
+                headers: headers,
+                body: JSON.stringify(update),
+            }
+        );
+
+        if (response.ok) {
+            setLike({ liked: newLiked, likes: newLikes });
+        } else {
+            const error = await response.json();
+            alert(error.detail);
+        }
+
+        
     }
 
     return (
-        <div className="relative inline-flex group">
-            <button
-                disabled={isDisabled}
-                aria-disabled={isDisabled}
-                onClick={handleLike}
-                className={`
-                    flex items-center gap-2 transition-colors
-                    ${like.liked ? "text-red-500" : "text-gray-600"}
-                    ${isDisabled
-                        ? "cursor-not-allowed opacity-50"
-                        : "cursor-pointer hover:text-red-500"}
-                `}
-            >
-                <Heart size={20} /> {like.likes}
-            </button>
-        </div>
+        <button
+            disabled={isDisabled}
+            aria-disabled={isDisabled}
+            onClick={handleLike}
+            className={`
+                cursor-pointer flex items-center gap-2 hover:text-red-500 transition-colors py-1 px-2 rounded-lg hover:bg-red-50
+                ${like.liked ? "text-red-500 bg-red-50" : "text-gray-600"}
+                ${isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer hover:text-red-500"}
+            `}
+        >
+            <Heart size={20} /> <span className="text-sm font-semibold">{like.likes}</span>
+        </button>
     );
 }
 
 
-function CommentSection({ post, user }: { post: Post, user: User | undefined }) {
+function CommentSection({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string }) {
     const [comments, setComments] = useState<Comment[]>(post.comments);
     const commentInput = useRef<HTMLInputElement>(null);
     const isDisabled = !user;
@@ -142,7 +197,7 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
         }
 
         const newComment: Comment = {
-            id: `c-${numberFormatter(comments.length + 1)}`,
+            id: `c-${formatNumber(comments.length + 1)}`,
             author: user,
             created_at: new Date().toISOString(),
             content: newCommentContent
@@ -156,25 +211,25 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
             }
         ]
 
-        try {
-            const response = await fetch(
-                `http://localhost/community/posts/${post.id}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(update),
-                }
-            );
-
-            if (response.status !== 204) {
-                throw new Error(`Unexpected status: ${response.status}`);
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+            ...(user?.email && { 'X-Credential': user.email, }),
+            ...(apiKey && { 'X-Api-Key': apiKey, }),
+        }
+        const response = await fetch(
+            `${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}${post.id}`,
+            {
+                method: "PATCH",
+                headers: headers,
+                body: JSON.stringify(update),
             }
+        );
 
+        if (response.ok) {
             setComments((prev) => [...prev, newComment]);
-        } catch (error) {
-            console.error("Failed to update like", error);
+        } else {
+            const error = await response.json();
+            alert(error.detail);
         }
     }
 
@@ -189,7 +244,7 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
                             <div className="bg-gray-50 p-3 rounded-xl flex-1 text-sm">
                                 <div className="flex justify-between items-baseline mb-1">
                                     <span className="font-bold text-forest capitalize">{comment.author.name}</span>
-                                    <span className="text-xs text-gray-400">{dateFormatter.format(new Date(comment.created_at))}</span>
+                                    <span className="text-xs text-gray-400">{formatDate(comment.created_at)}</span>
                                 </div>
                                 <p className="text-charcoal">{comment.content}</p>
                             </div>
@@ -200,7 +255,7 @@ function CommentSection({ post, user }: { post: Post, user: User | undefined }) 
                 )}
             </div>
             <div className="flex gap-3 items-center">
-                <UserAvatar user={user || DEFAULT_USER} />
+                <UserAvatar user={user} />
                 <input
                     ref={commentInput}
                     type="text"

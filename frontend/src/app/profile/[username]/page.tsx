@@ -1,6 +1,5 @@
 import { SignOutButton } from "@/components/common";
 import { PostCard } from "@/components/community";
-import { DEFAULT_USER } from "@/constants";
 import { Post } from "@/types/community";
 
 export default function ProfilePage() {
@@ -27,7 +26,7 @@ export default function ProfilePage() {
             },
             created_at: "2025-12-20T10:15:00Z",
             content: "Just finished a 10k run! Feeling amazing and energized. 🏃‍♀️✨",
-            image: "https://picsum.photos/800/400?random=1",
+            images: ["https://picsum.photos/800/400?random=1"],
             likes: [
                 {
                     email: "bob@example.com",
@@ -62,7 +61,6 @@ export default function ProfilePage() {
                     content: "Inspiring! I need to start running again.",
                 },
             ],
-            tags: ["fitness", "running", "motivation"],
         },
 
         {
@@ -74,7 +72,7 @@ export default function ProfilePage() {
             },
             created_at: "2025-12-21T08:30:00Z",
             content: "Check out this sunset I captured yesterday. The sky was unreal! 🌅",
-            image: "https://picsum.photos/800/400?random=2",
+            images: ["https://picsum.photos/800/400?random=2"],
             likes: [
                 {
                     email: "grace@example.com",
@@ -94,7 +92,6 @@ export default function ProfilePage() {
                     content: "That’s gorgeous! Where did you take this?",
                 },
             ],
-            tags: ["photography", "sunset", "nature"],
         },
 
         {
@@ -106,6 +103,7 @@ export default function ProfilePage() {
             },
             created_at: "2025-12-22T14:45:00Z",
             content: "Finally launched my first web app! Feeling proud and relieved. 🚀",
+            images: [],
             likes: [
                 {
                     email: "jack@example.com",
@@ -135,7 +133,6 @@ export default function ProfilePage() {
                     content: "Congrats Ivy! Can’t wait to try it out.",
                 },
             ],
-            tags: ["webdev", "launch", "proud"],
         },
     ];
 
@@ -148,7 +145,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
-                        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                        <div className="flex flex-row items-center gap-4 mb-6">
                             <h2 className="text-2xl font-light text-charcoal capitalize">{profileData.username}</h2>
                             <div className="flex-1 flex justify-end">
                                 <SignOutButton />
@@ -170,7 +167,7 @@ export default function ProfilePage() {
                 <div className="border-t border-gray-200 mb-10"></div>
 
                 <div className="space-y-6">
-                    {mockPosts.map((post) => <PostCard key={post.id} post={post} user={DEFAULT_USER} />)}
+                    {mockPosts.map((post) => <PostCard key={post.id} post={post}/>)}
                 </div>
             </div>
         </div>

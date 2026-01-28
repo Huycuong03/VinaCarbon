@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+
+import { Statistic } from "@/types/biomass";
+import { formatNumber } from "@/lib/formatters";
 
 const Map = dynamic(
     () => import("@/components/map"),
@@ -13,20 +15,7 @@ const Map = dynamic(
 
 export default function MapPage() {
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
-    const [statistics, setStatistics] = useState<any | null>(null);
-    const result = {
-        biomass: Math.floor(1200 + Math.random() * 500),
-        carbonStock: Math.floor(600 + Math.random() * 250),
-        estimatedCredits: Math.floor(100 + Math.random() * 50),
-        potentialRevenue: Math.floor(2000 + Math.random() * 1000),
-        canopyHeight: Math.floor(15 + Math.random() * 10)
-    }
-    const chartData = [
-        { name: 'Year 1', credits: result ? result.estimatedCredits : 0 },
-        { name: 'Year 3', credits: result ? Math.floor(result.estimatedCredits * 1.1) : 0 },
-        { name: 'Year 5', credits: result ? Math.floor(result.estimatedCredits * 1.3) : 0 },
-        { name: 'Year 10', credits: result ? Math.floor(result.estimatedCredits * 1.8) : 0 },
-    ];
+    const [statistics, setStatistics] = useState<Statistic[]>([]);
 
     return (
         <div className="h-[calc(100vh-80px)] flex flex-col">
@@ -63,36 +52,13 @@ export default function MapPage() {
                         {statistics &&
                             <div className="animate-fade-in space-y-6">
                                 <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div className="bg-white/45 p-3 rounded-lg">
-                                        <div className="text-xs uppercase">Tổng sinh khối</div>
-                                        <div className="text-lg font-bold text-charcoal">{statistics.total_biomass.value.toFixed(3)} {statistics.total_biomass.unit}</div>
-                                    </div>
-                                    <div className="bg-white/45 p-3 rounded-lg">
-                                        <div className="text-xs uppercase">Diện tích</div>
-                                        <div className="text-lg font-bold text-forest">{statistics.area.value.toFixed(3)} {statistics.area.unit}</div>
-                                    </div>
-                                    <div className="bg-white/45 p-3 rounded-lg">
-                                        <div className="text-xs uppercase">Mật độ sinh khối</div>
-                                        <div className="text-lg font-bold text-forest">{statistics.mean_biomass.value.toFixed(3)} {statistics.mean_biomass.unit}</div>
-                                    </div>
-                                    <div className="bg-white/45 p-3 rounded-lg">
-                                        <div className="text-xs uppercase">Trữ lượng Carbon</div>
-                                        <div className="text-lg font-bold text-forest">{statistics.carbon_stock.value.toFixed(3)} {statistics.carbon_stock.unit}</div>
-                                    </div>
+                                    {statistics.slice(0, 4).map((stat, i) => (
+                                        <div key={i} className="bg-white/45 p-3 rounded-lg">
+                                            <div className="text-xs uppercase">{stat.name}</div>
+                                            <div className="text-lg font-bold text-charcoal">{formatNumber(stat.value)} {stat.unit}</div>
+                                        </div>
+                                    ))}
                                 </div>
-
-                                {/* <div className="h-48 w-full">
-                                    <p className="text-xs text-center text-white-400 mb-2">Projected Credit Yield (10 Years)</p>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={chartData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                            <YAxis hide />
-                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                            <Bar dataKey="credits" fill="#A7D99B" radius={[4, 4, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div> */}
                             </div>
                         }
                     </div>

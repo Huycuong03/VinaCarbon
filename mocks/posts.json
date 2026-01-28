@@ -8,7 +8,7 @@
     },
     "created_at": "2025-01-05T09:12:34Z",
     "content": "Morning coffee and big ideas.",
-    "image": "https://picsum.photos/600/300?random=12",
+    "images": ["https://picsum.photos/600/300?random=12"],
     "likes": [
       {
         "email": "nguyenhuy2k8@gmail.com",
@@ -27,8 +27,7 @@
         "created_at": "2025-01-05T10:01:00Z",
         "content": "That looks delicious!"
       }
-    ],
-    "tags": ["coffee", "morning"]
+    ]
   },
   {
     "id": "post-002",
@@ -51,8 +50,7 @@
         "image": "https://picsum.photos/50/50?random=10"
       }
     ],
-    "comments": [],
-    "tags": ["dev", "work"]
+    "comments": []
   },
   {
     "id": "post-003",
@@ -63,10 +61,9 @@
     },
     "created_at": "2025-01-07T08:45:00Z",
     "content": "Sunrise walks are underrated.",
-    "image": "https://picsum.photos/600/300?random=12",
+    "images": ["https://picsum.photos/600/300?random=12"],
     "likes": [],
-    "comments": [],
-    "tags": ["nature", "wellbeing"]
+    "comments": []
   },
   {
     "id": "post-004",
@@ -77,7 +74,7 @@
     },
     "created_at": "2025-01-08T19:30:55Z",
     "content": "Trying out a new recipe tonight.",
-    "image": "https://picsum.photos/600/300?random=12",
+    "images": ["https://picsum.photos/600/300?random=12"],
     "likes": [
       {
         "email": "alice@example.com",
@@ -96,8 +93,7 @@
         "created_at": "2025-01-08T20:10:00Z",
         "content": "Save me a plate."
       }
-    ],
-    "tags": ["food", "cooking"]
+    ]
   },
   {
     "id": "post-005",
@@ -109,8 +105,7 @@
     "created_at": "2025-01-09T11:05:42Z",
     "content": "Reading something that rewired my brain.",
     "likes": [],
-    "comments": [],
-    "tags": ["books", "learning"]
+    "comments": []
   },
   {
     "id": "post-006",
@@ -128,8 +123,7 @@
         "image": "https://picsum.photos/50/50?random=10"
       }
     ],
-    "comments": [],
-    "tags": ["programming", "humor"]
+    "comments": []
   },
   {
     "id": "post-007",
@@ -140,10 +134,9 @@
     },
     "created_at": "2025-01-11T07:20:00Z",
     "content": "Early flight, empty airport vibes.",
-    "image": "https://picsum.photos/600/300?random=12",
+    "images": ["https://picsum.photos/600/300?random=12"],
     "likes": [],
-    "comments": [],
-    "tags": ["travel"]
+    "comments": []
   },
   {
     "id": "post-008",
@@ -161,8 +154,7 @@
         "image": "https://picsum.photos/50/50?random=10"
       }
     ],
-    "comments": [],
-    "tags": ["friends", "games"]
+    "comments": []
   },
   {
     "id": "post-009",
@@ -173,10 +165,9 @@
     },
     "created_at": "2025-01-13T13:00:00Z",
     "content": "Finally organized my workspace.",
-    "image": "https://picsum.photos/600/300?random=12",
+    "images": ["https://picsum.photos/600/300?random=12"],
     "likes": [],
-    "comments": [],
-    "tags": ["productivity"]
+    "comments": []
   },
   {
     "id": "post-010",
@@ -194,7 +185,6 @@
         "image": "https://picsum.photos/50/50?random=10"
       }
     ],
-    "comments": [],
-    "tags": ["fitness", "running"]
+    "comments": []
   }
 ]

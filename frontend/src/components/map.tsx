@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef, FormEvent } from "react";
+import { useSession } from "next-auth/react";
 import { FeatureGroup, MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-draw";
 import { LocateFixed, Square, Pentagon, FileBracesCorner, ChartColumnBig, Trash2, MapPin } from "lucide-react";
-import { MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
+import { BACKEND_API_ENDPOINT, BACKEND_URL, MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
 import "leaflet-geotiff-2";
 import "leaflet-geotiff-2/dist/leaflet-geotiff-plotty";
 
-export function MapControls({ featureGroup, setStatistics }: { featureGroup: any, setStatistics: (stats: any) => void }) {
+export function MapControls({ featureGroup, setStatistics, setMessage }: { featureGroup: any, setStatistics: (stats: any) => void, setMessage: (vale: string | null) => void}) {
+    const { data: session, status } = useSession();
     const map = useMap();
     const [hasFeatures, setHasFeatures] = useState<boolean>(false);
     const drawTool = useRef(null)
@@ -46,21 +48,28 @@ export function MapControls({ featureGroup, setStatistics }: { featureGroup: any
     const onAnalyze = async () => {
         const features = featureGroup.current.toGeoJSON();
         onClearFeatures();
+        setMessage("Uploading ...");
 
-        try{
+        try {
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+                ...(session?.user?.email && { 'X-Credential': session.user.email, }),
+                ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
+            }
             const response = await fetch(
-                "http://localhost/biomass",
+                `${BACKEND_URL}${BACKEND_API_ENDPOINT.BIOMASS}`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: headers,
                     body: JSON.stringify(features),
                 }
             );
 
+            setMessage(null);
+
             if (!response.ok) {
-                throw new Error(`Unexpected status: ${response.status}`);
+                const error = await response.json();
+                throw new Error(error.detail);
             }
 
             const statsHeader = response.headers.get("X-Statistics");
@@ -87,7 +96,7 @@ export function MapControls({ featureGroup, setStatistics }: { featureGroup: any
             setHasFeatures(true);
 
         } catch (error) {
-            console.error("Failed to get analysis", error);
+            alert(error);
         }
 
     };
@@ -188,16 +197,22 @@ export function MapControls({ featureGroup, setStatistics }: { featureGroup: any
     );
 };
 
-export default function Map({setStatistics}: {setStatistics: (stats: any) => void}) {
-    const map = useRef(null);
+export default function Map({ setStatistics }: { setStatistics: (stats: any) => void }) {
+    const [message, setMessage] = useState<string | null>(null);
     const featureGroup = useRef(null);
 
     return (
-        <MapContainer ref={map} center={[21.0285, 105.8542]} zoom={13} style={{ width: "100%", height: "100%" }}>
-            <TileLayer url={MAP_IMAGE_LAYER_URL} />
-            <TileLayer url={MAP_REFERENCE_LAYER_URL} />
-            <FeatureGroup ref={featureGroup} />
-            <MapControls featureGroup={featureGroup} setStatistics={setStatistics}/>
-        </MapContainer>
+        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            {message && (
+                <div className="absolute inset-0 z-1000 flex items-center justify-center">
+                    <div className="min-w-[20%] p-6 bg-white/80 font-semibold p-6 rounded-sm shadow-xl">{message}</div>
+                </div>)}
+            <MapContainer center={[21.0285, 105.8542]} zoom={13} style={{ width: "100%", height: "100%" }}>
+                <TileLayer url={MAP_IMAGE_LAYER_URL} />
+                <TileLayer url={MAP_REFERENCE_LAYER_URL} />
+                <FeatureGroup ref={featureGroup} />
+                <MapControls featureGroup={featureGroup} setStatistics={setStatistics} setMessage={setMessage} />
+            </MapContainer>
+        </div>
     );
 };

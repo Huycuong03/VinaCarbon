@@ -48,7 +48,7 @@ export function SearchResultRow({ document }: { document: DocumentMetaData | nul
                     {document.content_type}
                 </span>
                 <span className="font-light">{document.last_modified}</span>
-                <span className="font-light">{document.storage_size.toFixed(2)} MB</span>
+                <span className="font-light">{document.storage_size}</span>
                 <button className="cursor-pointer text-gray-400 hover:text-charcoal">
                     <Download size={24} />
                 </button>

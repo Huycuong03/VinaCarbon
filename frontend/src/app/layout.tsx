@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Lexend, Playfair_Display, Poppins } from "next/font/google";
+import { Inter, Lexend, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${lexend.variable} ${inter.variable} ${playfair.variable} bg-sand text-charcoal antialiased`}
+        className={`${lexend.variable} ${inter.variable} ${playfair.variable} bg-sand text-charcoal antialiased min-h-screen flex flex-col`}
       >
         <SessionProviders>
           <NavBar />

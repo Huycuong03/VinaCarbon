@@ -10,22 +10,25 @@
      - [x] like
      - [x] comment
      - [ ] share
-   - [ ] search posts by content
    - [x] post content ***(authenticated)***
-     - [ ] toxic content detection
+     - [x] toxic content detection
+     - [x] images
 3. assistant ***(authenticated)***
    - [x] question & answer
+   - [x] conversations
    - [ ] clickable citation
 4. map
    - [x] navigation
-   - [ ] available area: instant response
+   - [x] available area: instant response
    - unavailable area ***(authenticated)***
      - [ ] create inference request
-     - [ ] store result
-5. user profile ***(authenticated)***
-   - [ ] follower, following
-   - [ ] contacts
-   - [ ] posts
+   - [x] analysis
+5. user profile
+   - [x] follower, following
+   - [x] contacts
+   - [x] posts
+   - [ ] following button
+
 ### Prerequisites
 1. azure services
    - [x] azure blob storage
@@ -38,7 +41,7 @@
 3. search
    - azure blob storage
      - [x] create container
-     - [ ] upload documents
+     - [x] upload documents
    - azure foundry
      - [x] deploy a text embedding model
 4. community
@@ -49,11 +52,11 @@
         - full-text-search: /content
 5. assistant
    - azure foundry
-     - [ ] create agent
+     - [x] create agent
        - meta: name, description, starter prompt
        - instructions
        - tool = file search
-        - [ ] upload documents
+        - [x] upload documents
 6. map
    - [x] collect data
      - [x] sample data
@@ -61,6 +64,6 @@
        - patches: footprints >= 10%
      - [x] group patches by region
      - [x] download patches: sen1, sen2-10m, sen2-20m, sen2-60, gedi-agbd
-   - [ ] train model
-   - [ ] validation
+   - [x] train model
+   - [x] validation
    - [x] inference

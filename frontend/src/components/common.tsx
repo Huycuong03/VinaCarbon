@@ -5,25 +5,24 @@ import { useSession } from "next-auth/react";
 import { signIn, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { Page, User } from "@/types/common";
-import { APP_NAME, NAV_ITEMS, DEFAULT_USER } from "@/constants";
+import { User } from "@/types/common";
+import { APP_NAME, Page, NAV_ITEMS, DEFAULT_USER_IMAGE_URL } from "@/constants";
 import { Search, ArrowRight } from "lucide-react";
 
-export function UserAvatar({ user }: { user: User }) {
+export function UserAvatar({ user }: { user?: User }) {
     const router = useRouter();
     return (
         <button
             onClick={() => {
-                if (user?.name && user.name !== DEFAULT_USER.name) {
-                    const username = user.email?.split("@")[0];
-                    router.push(`${Page.PROFILE}/${username}`);
+                if (user?.email) {
+                    router.push(`${Page.PROFILE}/${user.email}`);
                 }
             }}
             className="hidden md:flex items-center justify-center cursor-pointer"
         >
             <img
-                src={user.image || DEFAULT_USER.image}
-                alt={user.name || DEFAULT_USER.name}
+                src={user?.image || DEFAULT_USER_IMAGE_URL}
+                alt={user?.name || "default-user"}
                 className="w-10 h-10 rounded-full object-cover border border-gray-200 hover:scale-105 transition-transform"
             />
         </button>
@@ -57,8 +56,8 @@ export function NavBar() {
                         router.push(Page.HOME);
                     }}
                 >
-                    <div className="w-10 h-10 bg-forest rounded-lg flex items-center justify-center text-white">
-                        <span className="font-serif font-bold text-xl">{APP_NAME[0]}</span>
+                    <div className="w-8 h-8 flex items-center">
+                        <img src="/logo.png"/>
                     </div>
                     <span className="font-serif text-2xl font-bold text-forest tracking-tight hidden sm:block">{APP_NAME}</span>
                 </div>

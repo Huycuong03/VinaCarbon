@@ -1,6 +1,5 @@
 export interface Message {
   id: string;
-  type: "message" | "file_search_call";
   role: 'user' | 'assistant';
   content: MessageContent[];
 }
