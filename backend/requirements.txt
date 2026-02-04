@@ -1,0 +1,30 @@
+# hosting
+fastapi
+uvicorn
+aiohttp
+python-multipart
+
+# search & assistant
+azure-search-documents
+azure-ai-projects>=2.0.0b2
+azure-identity
+openai
+
+# community
+azure-cosmos
+azure-storage-blob
+cachetools
+scikit-learn==1.4.1.post1
+
+# biomass
+earthengine-api
+rasterio
+shapely
+pyproj
+numpy
+torch
+torchvision
+
+# others
+pydantic-settings
+python-jose[cryptography]

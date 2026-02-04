@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-pydantic-settings
-azure-ai-projects>=2.0.0b2
-azure-identity
-openai
-aiohttp

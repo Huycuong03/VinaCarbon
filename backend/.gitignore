@@ -1,0 +1,7 @@
+.env
+private-key.json
+preliminary-estimation-list.txt
+src/ai/models/*
+!src/ai/models/*.py
+
+**/__pycache__

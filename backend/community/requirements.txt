@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-aiohttp
-pydantic-settings
-cachetools
-azure-cosmos
-scikit-learn==1.4.1.post1
