@@ -1,6 +1,6 @@
 from .biomass import *
 from .community import *
-from .search import *
+from .documents import *
 
 __all__ = [
     "BiomassEstimationGeoTIFF",

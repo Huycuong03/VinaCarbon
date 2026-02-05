@@ -9,7 +9,6 @@ from src.dependencies import get_cache, get_post_service, get_user_service, veri
 from src.models import Comment, Post, Profile, Update, User
 from src.services import PostService, UserService
 from src.settings import LOGGER
-from sympy import det
 
 router = APIRouter(prefix="/api/users")
 
@@ -56,9 +55,7 @@ async def patch(
 ):
     try:
         if request_user.id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
         await user_service.update_profile(user_id=user_id, updates=updates)
     except HttpResponseError as e:
@@ -75,9 +72,7 @@ async def follow(
 ):
     try:
         if request_user.id == user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
         user_profile = await user_service.get_profile(user_id=user_id)
         request_user_profile = await user_service.get_profile(user_id=request_user.id)
@@ -88,7 +83,7 @@ async def follow(
 
         if user_id not in request_user_profile.following_ids:
             add_following = [
-                Update(op="add", path="/following/-", value=user_profile.get_preview())
+                Update(op="add", path="/followings/-", value=user_profile.get_preview())
             ]
             await user_service.update_profile(
                 user_id=request_user.id, updates=add_following
@@ -108,9 +103,7 @@ async def unfollow(
 ):
     try:
         if request_user.id == user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
         user_profile = await user_service.get_profile(user_id=user_id)
         request_user_profile = await user_service.get_profile(user_id=request_user.id)
@@ -133,7 +126,7 @@ async def unfollow(
                 if following.id != user_id
             ]
             remove_following = [
-                Update(op="replace", path="/following", value=new_followings)
+                Update(op="replace", path="/followings", value=new_followings)
             ]
             await user_service.update_profile(
                 user_id=request_user.id, updates=remove_following
@@ -186,9 +179,7 @@ async def patch_post(
 ):
     try:
         if request_user.id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
         await post_service.update(post_id=post_id, author_id=user_id, updates=updates)
     except HttpResponseError as e:
@@ -230,7 +221,7 @@ async def unlike_post(
     try:
         post = await post_service.get(post_id=post_id, author_id=user_id)
 
-        if request_user.id not in post.like_ids:
+        if request_user.id in post.like_ids:
             new_likes = [like for like in post.likes if like.id != request_user.id]
             remove_like = [Update(op="replace", path="/likes", value=new_likes)]
             await post_service.update(
@@ -242,8 +233,8 @@ async def unlike_post(
         raise HTTPException(status_code=status_code)
 
 
-@router.post(
-    "/{user_id}/posts/{post_id}/comment", status_code=status.HTTP_204_NO_CONTENT
+@router.patch(
+    "/{user_id}/posts/{post_id}/comments", status_code=status.HTTP_204_NO_CONTENT
 )
 async def add_comment(
     user_id: str,

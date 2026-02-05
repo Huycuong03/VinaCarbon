@@ -9,7 +9,7 @@ class PostService:
         self.cosmos_container = cosmos_container
 
     async def create(self, post: Post) -> Post:
-        item = post.model_dump(exclude={"id"})
+        item = post.model_dump()
         item = await self.cosmos_container.create_item(item)
         post = Post.model_validate(item)
         return post

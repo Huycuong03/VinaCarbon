@@ -2,7 +2,6 @@ from azure.core.exceptions import HttpResponseError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from openai.types.responses.response_input_param import Message
-
 from src.dependencies import get_user_service, verify_token
 from src.models import User
 from src.services import UserService
@@ -36,7 +35,8 @@ async def post(
             user_service.stream_response(
                 user_id=request_user.id,
                 user_message=message,
-            )
+            ),
+            headers={"Content-Type": "text/event-stream"},
         )
     except HttpResponseError as e:
         LOGGER.debug(e.message)

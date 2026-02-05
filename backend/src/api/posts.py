@@ -89,7 +89,7 @@ async def post(
                 images.append(blob_client.url)
 
         post = Post(
-            id="dummy",
+            id=str(uuid.uuid4()),
             author=request_user,
             content=content,
             images=images,

@@ -63,7 +63,7 @@ class BiomassEstimationService(ABC):
 
         area, _ = self.geod.geometry_area_perimeter(bbox)
         if area > SETTINGS.estimation_area_limit:
-            raise ValueError(f"Area too large (max=100ha) : {bbox.area}")
+            raise ValueError(f"Area too large (max=200ha) : {area}")
 
         preliminary_estimation = self.get_preliminary_estimation(bbox)
         if preliminary_estimation is None:
