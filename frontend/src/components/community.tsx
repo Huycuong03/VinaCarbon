@@ -6,13 +6,13 @@ import { Heart, MessageSquare, Share2, ChevronLeft, ChevronRight } from "lucide-
 import { UserAvatar } from "./common";
 
 
-import { User } from "@/types/common";
+import { User, Update } from "@/types/common";
 import { Post, Comment } from "@/types/community";
 import { formatDate, formatNumber } from "@/lib/formatters";
-import { BACKEND_URL, BACKEND_API_ENDPOINT } from "@/constants";
+import { BACKEND_API_ENDPOINT } from "@/constants";
 
 
-export function PostCard({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string}) {
+export function PostCard({ post, user }: { post: Post, user?: User }) {
     const [expanded, setExpanded] = useState<boolean>(false);
 
     return (
@@ -28,15 +28,15 @@ export function PostCard({ post, user, apiKey }: { post: Post, user?: User, apiK
                 <p className="text-charcoal mb-4 text-lg">{post.content}</p>
                 {post.images.length > 0 && <ImageCarousel images={post.images} />}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-gray-500">
-                    <LikeButton post={post} user={user} apiKey={apiKey}/>
+                    <LikeButton post={post} user={user} />
                     <button className='cursor-pointer flex items-center gap-2 transition-colors py-1 px-2 rounded-lg hover:text-forest hover:bg-forest/5' onClick={() => setExpanded((prev) => !prev)}>
-                        <MessageSquare size={20} />  <span className="text-sm font-semibold">{post.comments.length} Comments</span>
+                        <MessageSquare size={20} />  <span className="text-sm font-semibold">{post.comments.length} Bình luận</span>
                     </button>
                     <button className="cursor-pointer flex items-center gap-2 hover:text-blue-500 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50">
-                        <Share2 size={20} />  <span className="text-sm font-semibold">Share</span>
+                        <Share2 size={20} />  <span className="text-sm font-semibold">Chia sẻ</span>
                     </button>
                 </div>
-                {expanded && <CommentSection post={post} user={user} apiKey={apiKey}/>}
+                {expanded && <CommentSection post={post} user={user} />}
             </div>
         </div>
     );
@@ -77,13 +77,13 @@ function ImageCarousel({ images }: { images: string[] }) {
                 <>
                     <button
                         onClick={prev}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                        className="cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                     >
                         <ChevronLeft size={20} />
                     </button>
                     <button
                         onClick={next}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                        className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-forest shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                     >
                         <ChevronRight size={20} />
                     </button>
@@ -102,7 +102,7 @@ function ImageCarousel({ images }: { images: string[] }) {
     );
 };
 
-function LikeButton({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string }) {
+function LikeButton({ post, user }: { post: Post, user?: User }) {
     const [like, setLike] = useState<{ liked: boolean; likes: number }>({
         liked: false,
         likes: post.likes.length,
@@ -113,53 +113,34 @@ function LikeButton({ post, user, apiKey }: { post: Post, user?: User, apiKey?: 
     useEffect(() => {
         if (!user) return;
 
-        const liked = post.likes.some(liker => liker.email === user.email);
+        const liked = post.likes.some(liker => liker.id === user.id);
         setLike(prev => ({ liked, likes: prev.likes }));
     }, [user, post.likes]);
 
     async function handleLike() {
         if (!user) return;
 
-        const newLiked = !like.liked;
-        const newLikes = newLiked ? like.likes + 1 : like.likes - 1;
+        const previousLike = like;
 
-        const update = newLiked
-            ? [
-                {
-                    op: "add",
-                    path: "/likes/-",
-                    value: user,
-                },
-            ]
-            : [
-                {
-                    op: "replace",
-                    path: "/likes",
-                    value: post.likes.filter(liker => liker.email !== user.email),
-                },
-            ];
-        const headers: HeadersInit = {
-            "Content-Type": "application/json",
-            ...(user?.email && { 'X-Credential': user.email, }),
-            ...(apiKey && { 'X-Api-Key': apiKey, }),
-        }
+        setLike({
+            liked: !previousLike.liked,
+            likes: previousLike.liked ? previousLike.likes - 1 : previousLike.likes + 1
+        });
+
         const response = await fetch(
-            `${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}${post.id}`,
+            `/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/${like.liked ? "unlike" : "like"}`,
             {
-                method: "PATCH",
-                headers: headers,
-                body: JSON.stringify(update),
+                method: "PATCH"
             }
         );
 
-        if (response.ok) {
-            setLike({ liked: newLiked, likes: newLikes });
-        } else {
-            const error = await response.json();
-            alert(error.detail);
+        if (!response.ok) {
+            setLike(previousLike);
+            const { detail } = await response.json();
+            alert(detail);
         }
 
-        
+
     }
 
     return (
@@ -181,7 +162,7 @@ function LikeButton({ post, user, apiKey }: { post: Post, user?: User, apiKey?: 
 }
 
 
-function CommentSection({ post, user, apiKey }: { post: Post, user?: User, apiKey?: string }) {
+function CommentSection({ post, user }: { post: Post, user?: User }) {
     const [comments, setComments] = useState<Comment[]>(post.comments);
     const commentInput = useRef<HTMLInputElement>(null);
     const isDisabled = !user;
@@ -196,50 +177,39 @@ function CommentSection({ post, user, apiKey }: { post: Post, user?: User, apiKe
             commentInput.current.value = "";
         }
 
+        const previous = comments;
+
         const newComment: Comment = {
-            id: `c-${formatNumber(comments.length + 1)}`,
             author: user,
             created_at: new Date().toISOString(),
             content: newCommentContent
         }
+        setComments(prev => [...prev, newComment]);
 
-        const update = [
-            {
-                "op": "add",
-                "path": "/comments/-",
-                "value": newComment
-            }
-        ]
-
-        const headers: HeadersInit = {
-            "Content-Type": "application/json",
-            ...(user?.email && { 'X-Credential': user.email, }),
-            ...(apiKey && { 'X-Api-Key': apiKey, }),
-        }
-        const response = await fetch(
-            `${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}${post.id}`,
+        const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/comments`,
             {
                 method: "PATCH",
-                headers: headers,
-                body: JSON.stringify(update),
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newComment),
             }
         );
 
-        if (response.ok) {
-            setComments((prev) => [...prev, newComment]);
-        } else {
-            const error = await response.json();
-            alert(error.detail);
+        if (!response.ok) {
+            setComments(previous);
+            const { detail } = await response.json();
+            alert(detail);
         }
     }
 
     return (
         <div className="mt-4 pt-4 border-t border-gray-100 animate-fade-in">
-            <h5 className="font-bold text-sm text-charcoal mb-3">Comments</h5>
+            <h5 className="font-bold text-sm text-charcoal mb-3">Bình luận</h5>
             <div className="space-y-4 mb-4">
                 {comments && comments.length > 0 ? (
-                    comments.map(comment => (
-                        <div key={comment.id} className="flex gap-3">
+                    comments.map((comment, i) => (
+                        <div key={i} className="flex gap-3">
                             <UserAvatar user={comment.author} />
                             <div className="bg-gray-50 p-3 rounded-xl flex-1 text-sm">
                                 <div className="flex justify-between items-baseline mb-1">
@@ -251,7 +221,7 @@ function CommentSection({ post, user, apiKey }: { post: Post, user?: User, apiKe
                         </div>
                     ))
                 ) : (
-                    <p className="text-sm text-gray-500 italic">No comments yet. Be the first to share your thoughts!</p>
+                    <p className="text-sm text-gray-500 italic">Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!</p>
                 )}
             </div>
             <div className="flex gap-3 items-center">

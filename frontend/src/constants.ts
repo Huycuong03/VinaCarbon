@@ -2,20 +2,19 @@ import { NavItem } from "@/types/common";
 
 // System
 export const APP_NAME = "VinaCarbon";
-export const BACKEND_URL = "http://localhost:8000";
 export enum BACKEND_API_ENDPOINT {
-  SEARCH = "/api/search",
+  DOCUMENTS = "/api/documents",
   ASSISTANT = "/api/assistant",
-  COMMUNITY = "/api/community",
+  POSTS = "/api/posts",
   BIOMASS = "/api/biomass",
-  USER = "/api/users"
+  USERS = "/api/users"
 }
 
 
 // Navigation
 export enum Page {
   HOME = "/",
-  SEARCH = "/search",
+  DOCUMENTS = "/documents",
   ASSISTANT = "/assistant",
   MAP = "/map",
   COMMUNITY = "/community",
@@ -24,8 +23,8 @@ export enum Page {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: Page.HOME, label: "Trang Chủ", restricted: false },
-  { id: Page.SEARCH, label: "Tài Liệu", restricted: false },
-  { id: Page.ASSISTANT, label: "Trợ Lý AI", restricted: true },
+  { id: Page.DOCUMENTS, label: "Tài Liệu", restricted: false },
+  { id: Page.ASSISTANT, label: "Trợ Lý AI", restricted: false },
   { id: Page.MAP, label: "Bản Đồ", restricted: false },
   { id: Page.COMMUNITY, label: "Cộng Đồng", restricted: false },
 ];

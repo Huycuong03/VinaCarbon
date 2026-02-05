@@ -1,7 +1,6 @@
 import { User } from "@/types/common";
 
 export interface Comment {
-  id: string;
   author: User;
   created_at: string;
   content: string;

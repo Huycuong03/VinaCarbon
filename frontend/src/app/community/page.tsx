@@ -5,12 +5,12 @@ import { useSession } from "next-auth/react";
 
 import { UserAvatar } from "@/components/common";
 import { PostCard } from "@/components/community";
-import { X, Globe, Plus } from "lucide-react";
+import { X, Plus } from "lucide-react";
 
 import { Post } from "@/types/community";
 import { getRandomString } from "@/lib/utils";
 import { formatDate } from "@/lib/formatters";
-import { BACKEND_URL, BACKEND_API_ENDPOINT } from "@/constants";
+import { BACKEND_API_ENDPOINT } from "@/constants";
 
 export default function CommunityPage() {
     const { data: session, status } = useSession();
@@ -28,15 +28,31 @@ export default function CommunityPage() {
 
     const loadPosts = useCallback(async () => {
         if (loading) return;
-        setLoading(true);
-        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}`, {
-            headers: {
-                "X-Continuation-Token": continuationToken
+        if (!continuationToken) return;
+
+        try {
+            setLoading(true);
+            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
+                headers: {
+                    "X-Continuation-Token": continuationToken
+                }
+            });
+            const { data, detail }: { data: Post[], detail?: string } = await response.json();
+
+            if (response.ok) {
+                if (data) {
+                    setPosts((prev) => [...prev, ...data]);
+                } else {
+                    setContinuationToken("");
+                }
+            } else {
+                alert(detail);
             }
-        });
-        const documents: Post[] = await response.json();
-        setPosts((prev) => [...prev, ...documents]);
-        setLoading(false);
+        } catch (error) {
+            alert("Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
 
     }, [loading, continuationToken]);
 
@@ -47,7 +63,7 @@ export default function CommunityPage() {
                     loadPosts();
                 }
             },
-            { threshold: 0.2 }
+            { threshold: 0.5 }
         );
 
         if (observerTarget.current) {
@@ -72,10 +88,10 @@ export default function CommunityPage() {
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
+        const files = Array.from(e.target.files || []).reverse();
         if (files.length > 0) {
             setSelectedImages(prev => [...prev, ...files]);
-            
+
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -84,6 +100,7 @@ export default function CommunityPage() {
                 reader.readAsDataURL(file);
             });
         }
+        e.target.value = "";
     };
 
     const removeSelectedImage = (index: number) => {
@@ -97,28 +114,30 @@ export default function CommunityPage() {
         const content = newPostContent.trim();
         if (!content) return;
 
+        handleCancelCreate();
+
         const formData = new FormData();
         formData.append('content', newPostContent);
         selectedImages.forEach((file) => {
             formData.append('images', file);
         });
-        const headers: HeadersInit = {
-            ...(session?.user?.email && { 'X-Credential': session.user.email, }),
-            ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
-        }
-        const response = await fetch(`${BACKEND_URL}${BACKEND_API_ENDPOINT.COMMUNITY}`, {
-            method: 'POST',
-            headers: headers,
-            body: formData
-        });
 
-        const newPost: Post = await response.json();
+        try {
+            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
+                method: 'POST',
+                body: formData
+            });
 
-        if (response.ok) {
-            setPosts((prev) => [newPost, ...prev]);
-            handleCancelCreate();
-        } else {
-            alert(newPost.detail);
+            const { data, detail }: { data: Post, detail?: string } = await response.json();
+
+            if (response.ok) {
+                setPosts((prev) => [data, ...prev]);
+            } else {
+                alert(detail);
+            }
+            
+        } catch (error) {
+            alert("Something went wrong.");
         }
     }
 
@@ -141,7 +160,7 @@ export default function CommunityPage() {
                                     disabled={status === "unauthenticated"}
                                     onClick={() => setIsCreatingPost(true)}
                                     placeholder="Hãy chia sẻ trải nghiệm của bạn ..."
-                                    className="flex-1 bg-gray-100/50 hover:bg-gray-100 rounded-full px-5 py-3 text-charcoal/70 focus:outline-none transition-colors cursor-pointer"
+                                    className="flex-1 bg-gray-100/50 hover:bg-gray-100 rounded-lg px-5 py-3 text-charcoal/70 focus:outline-none transition-colors cursor-pointer"
                                 />
                             </div>
                         ) : (
@@ -215,7 +234,7 @@ export default function CommunityPage() {
                     </div>
 
                     <div className="space-y-6">
-                        {posts.map((post, i) => <PostCard key={i} post={post} user={session?.user} apiKey={session?.apiKey} />)}
+                        {posts.map((post, i) => <PostCard key={i} post={post} user={session?.user} />)}
                     </div>
                     <div ref={observerTarget} className="py-8 flex justify-center w-full">
                         {loading && (

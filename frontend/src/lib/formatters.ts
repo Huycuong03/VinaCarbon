@@ -1,5 +1,5 @@
 export function formatDate(timestamp: number | string): string {
-    const datetime = new Date(timestamp);
+    const datetime = new Date(typeof timestamp === "string" ? timestamp : timestamp * 1000);
 
     return datetime.toLocaleDateString([], {
         month: 'short',
@@ -10,7 +10,7 @@ export function formatDate(timestamp: number | string): string {
 
 
 export function formatTime(timestamp: number | string): string {
-    const datetime = new Date(timestamp);
+    const datetime = new Date(typeof timestamp === "string" ? timestamp : timestamp * 1000);
 
     return datetime.toLocaleTimeString([], {
         hour: '2-digit',

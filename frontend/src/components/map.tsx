@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect, useState, useRef, FormEvent } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { FeatureGroup, MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
+import type { LeafletEvent, LocationEvent, LeafletMouseEvent } from "leaflet";
 import "leaflet-draw";
-import { LocateFixed, Square, Pentagon, FileBracesCorner, ChartColumnBig, Trash2, MapPin } from "lucide-react";
-import { BACKEND_API_ENDPOINT, BACKEND_URL, MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
+import { LocateFixed, Square, Pentagon, FileBracesCorner, SquareFunction, Trash2, MapPin, Loader2, ScanSearch } from "lucide-react";
+import { BACKEND_API_ENDPOINT, MAP_IMAGE_LAYER_URL, MAP_REFERENCE_LAYER_URL } from "@/constants";
 import "leaflet-geotiff-2";
 import "leaflet-geotiff-2/dist/leaflet-geotiff-plotty";
 
-export function MapControls({ featureGroup, setStatistics, setMessage }: { featureGroup: any, setStatistics: (stats: any) => void, setMessage: (vale: string | null) => void}) {
-    const { data: session, status } = useSession();
+export function MapControls({ featureGroup, setStatistics, setLoading }: { featureGroup: any, setStatistics: (stats: any) => void, setLoading: (vale: boolean) => void }) {
+    const { status } = useSession();
     const map = useMap();
     const [hasFeatures, setHasFeatures] = useState<boolean>(false);
-    const drawTool = useRef(null)
+    const drawTool = useRef<any>(null)
     const [cursorPos, setCursorPos] = useState<{ lat: number, lng: number } | null>(null);
+    const geojsonInputRef = useRef<HTMLInputElement | null>(null);
 
-    const enableDrawTool = (isRectangle: boolean = true) => {
+    function enableDrawTool(isRectangle: boolean = true) {
         if (drawTool.current) {
             drawTool.current.disable();
             drawTool.current = null;
@@ -32,44 +34,48 @@ export function MapControls({ featureGroup, setStatistics, setMessage }: { featu
         drawTool.current.enable()
     }
 
-    const disbaleDrawTool = () => {
+    function disbaleDrawTool() {
         if (drawTool.current) {
             drawTool.current.disable();
             drawTool.current = null;
         }
     }
 
-    const onClearFeatures = () => {
+    function onClearFeatures() {
         featureGroup.current.clearLayers();
         setHasFeatures(false);
         setStatistics(null);
     }
 
-    const onAnalyze = async () => {
+    async function onAnalyze(analysisType: "preliminary" | "runtime") {
+        if (analysisType === "runtime" && status !== "authenticated") {
+            alert("Vui lòng đăng nhập để sử dụng tính năng này.");
+            return;
+        }
+
         const features = featureGroup.current.toGeoJSON();
         onClearFeatures();
-        setMessage("Uploading ...");
+        setLoading(true);
 
         try {
-            const headers: HeadersInit = {
-                "Content-Type": "application/json",
-                ...(session?.user?.email && { 'X-Credential': session.user.email, }),
-                ...(session?.apiKey && { 'X-Api-Key': session.apiKey, }),
-            }
             const response = await fetch(
-                `${BACKEND_URL}${BACKEND_API_ENDPOINT.BIOMASS}`,
+                `/api/backend${BACKEND_API_ENDPOINT.BIOMASS}/${analysisType}`,
                 {
                     method: "POST",
-                    headers: headers,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify(features),
                 }
             );
 
-            setMessage(null);
-
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail);
+                if (response.status === 400) {
+                    const { detail } = await response.json();
+                    alert(detail);
+                    setLoading(false);
+                    return;
+                }
             }
 
             const statsHeader = response.headers.get("X-Statistics");
@@ -80,7 +86,7 @@ export function MapControls({ featureGroup, setStatistics, setMessage }: { featu
             const url = URL.createObjectURL(blob);
 
             const renderer = L.LeafletGeotiff.plotty({
-                displayMin: 0,
+                displayMin: -1,
                 displayMax: 1,
                 applyDisplayRange: true,
                 colorScale: "rainbow",
@@ -94,53 +100,54 @@ export function MapControls({ featureGroup, setStatistics, setMessage }: { featu
 
             imageLayer.addTo(featureGroup.current);
             setHasFeatures(true);
+            setLoading(false);
+
 
         } catch (error) {
             alert(error);
+            setLoading(false);
         }
 
     };
 
-    const onUploadGeoJSON = (e: FormEvent) => {
+    async function onUploadGeoJSON(e: React.ChangeEvent<HTMLInputElement>) {
         disbaleDrawTool();
-
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
 
-        reader.onload = function (e) {
-            try {
-                const text = e.target.result;
-                const data = JSON.parse(text);
-                const geoJSONLayer = L.geoJSON(data);
-                geoJSONLayer.addTo(featureGroup.current);
-                map.flyToBounds(geoJSONLayer.getBounds());
-                setHasFeatures(true);
-            } catch (err) {
-                console.error("Error parsing JSON:", err);
-            }
-        };
-
-        reader.readAsText(file);
+        try {
+            const text = await file.text();      // read file contents
+            const data = JSON.parse(text);
+            const geoJSONLayer = L.geoJSON(data);
+            geoJSONLayer.addTo(featureGroup.current);
+            map.flyToBounds(geoJSONLayer.getBounds());
+            setHasFeatures(true);
+        } catch (err) {
+            console.error("Error parsing JSON:", err);
+        } finally {
+            e.target.value = "";
+        }
     };
 
     useEffect(() => {
-        const onDrawCreated = (e) => {
-            featureGroup.current.addLayer(e.layer);
+        const onDrawCreated = (event: LeafletEvent) => {
+            featureGroup.current.addLayer(event.layer);
             setHasFeatures(true);
             disbaleDrawTool();
         };
 
-        const onLocationFound = (e) => {
+        const onLocationFound = (event: LocationEvent) => {
             disbaleDrawTool();
-            map.flyTo(e.latlng, map.getZoom());
+            map.flyTo(event.latlng, map.getZoom());
+        };
+
+        const onMouseMove = (event: LeafletMouseEvent) => {
+            setCursorPos({ lat: event.latlng.lat, lng: event.latlng.lng });
         };
 
         map.on(L.Draw.Event.CREATED, onDrawCreated);
         map.on("locationfound", onLocationFound);
-        map.on('mousemove', (e: any) => {
-            setCursorPos({ lat: e.latlng.lat, lng: e.latlng.lng });
-        });
+        map.on('mousemove', onMouseMove);
 
         return () => {
             map.off(L.Draw.Event.CREATED);
@@ -167,21 +174,24 @@ export function MapControls({ featureGroup, setStatistics, setMessage }: { featu
                 </button>
                 <button
                     className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white"
-                    onClick={() => document.getElementById("upload-geojson")?.click()}
+                    onClick={() => geojsonInputRef.current?.click()}
                 >
                     <FileBracesCorner size={20} />
                     <input
-                        id="upload-geojson"
+                        ref={geojsonInputRef}
                         type="file"
                         accept=".geojson"
+                        hidden
                         onChange={onUploadGeoJSON}
-                        style={{ display: "none" }}
                     />
                 </button>
                 {hasFeatures && (
                     <>
-                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={onAnalyze}>
-                            <ChartColumnBig size={20} />
+                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => onAnalyze("preliminary")}>
+                            <ScanSearch size={20} />
+                        </button>
+                        <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={() => onAnalyze("runtime")}>
+                            <SquareFunction size={20} />
                         </button>
                         <button className="leaflet-control leaflet-bar cursor-pointer p-2 bg-white" onClick={onClearFeatures}>
                             <Trash2 size={20} />
@@ -198,20 +208,23 @@ export function MapControls({ featureGroup, setStatistics, setMessage }: { featu
 };
 
 export default function Map({ setStatistics }: { setStatistics: (stats: any) => void }) {
-    const [message, setMessage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const featureGroup = useRef(null);
 
     return (
         <div style={{ position: "relative", width: "100%", height: "100%" }}>
-            {message && (
-                <div className="absolute inset-0 z-1000 flex items-center justify-center">
-                    <div className="min-w-[20%] p-6 bg-white/80 font-semibold p-6 rounded-sm shadow-xl">{message}</div>
+            {loading && (
+                <div className="absolute inset-0 z-1000 flex flex-col items-center justify-center animate-fade-in">
+                    <div className="flex flex-col items-center justify-center min-w-[20%] p-6 bg-white/80 p-6 rounded-sm shadow-xl">
+                        <Loader2 size={48} className="text-charcoal animate-spin mb-4" />
+                        <p className="text-charcoal font-medium font-serif text-xl">Đang tải ...</p>
+                    </div>
                 </div>)}
             <MapContainer center={[21.0285, 105.8542]} zoom={13} style={{ width: "100%", height: "100%" }}>
                 <TileLayer url={MAP_IMAGE_LAYER_URL} />
                 <TileLayer url={MAP_REFERENCE_LAYER_URL} />
                 <FeatureGroup ref={featureGroup} />
-                <MapControls featureGroup={featureGroup} setStatistics={setStatistics} setMessage={setMessage} />
+                <MapControls featureGroup={featureGroup} setStatistics={setStatistics} setLoading={setLoading} />
             </MapContainer>
         </div>
     );

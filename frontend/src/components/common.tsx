@@ -7,15 +7,15 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { User } from "@/types/common";
 import { APP_NAME, Page, NAV_ITEMS, DEFAULT_USER_IMAGE_URL } from "@/constants";
-import { Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, LogOut } from "lucide-react";
 
 export function UserAvatar({ user }: { user?: User }) {
     const router = useRouter();
     return (
         <button
             onClick={() => {
-                if (user?.email) {
-                    router.push(`${Page.PROFILE}/${user.email}`);
+                if (user?.id) {
+                    router.push(`${Page.PROFILE}/${user.id}`);
                 }
             }}
             className="hidden md:flex items-center justify-center cursor-pointer"
@@ -32,10 +32,10 @@ export function UserAvatar({ user }: { user?: User }) {
 export function SignOutButton() {
     return (
         <button 
-            className="px-5 py-1.5 bg-forest cursor-pointer text-white rounded-lg text-sm font-bold hover:scale-[1.05] transition-all"
+            className="cursor-pointer px-5 py-1.5 bg-gray-100 text-red-500 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-red-50 hover:scale-[1.05] transition-all"
             onClick={() => signOut()}
         >
-            Đăng xuất
+            <LogOut size={16} /> Đăng xuất
         </button>
     );
 }
@@ -128,7 +128,7 @@ export function SearchBar({ query }: { query: string | null }) {
         const query = searchBar.current?.value.trim();
         if (!query) return;
 
-        const href = `${Page.SEARCH}?query=${encodeURIComponent(query)}`
+        const href = `${Page.DOCUMENTS}?q=${encodeURIComponent(query)}`
         router.push(href);
     };
 

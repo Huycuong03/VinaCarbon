@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${lexend.variable} ${inter.variable} ${playfair.variable} bg-sand text-charcoal antialiased min-h-screen flex flex-col`}
+        className={`${lexend.variable} ${inter.variable} ${playfair.variable} bg-ưhite text-charcoal antialiased min-h-screen flex flex-col`}
       >
         <SessionProviders>
           <NavBar />
