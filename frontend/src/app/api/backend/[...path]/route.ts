@@ -79,7 +79,7 @@ export async function POST(
       headers,
       body: req.body,
       duplex: "half"
-    }
+    } as RequestInit & { duplex: string }
   );
 
 
@@ -132,7 +132,6 @@ export async function PATCH(
       method: "PATCH",
       headers,
       body: req.body,
-      duplex: "half"
     }
   );
 

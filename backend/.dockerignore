@@ -1,0 +1,4 @@
+**/__pycache__/
+src/ai/models/*
+!src/ai/models/
+!src/ai/models/vinacarbon.py

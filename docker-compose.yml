@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vinacarbon-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"              
+    networks:
+      - vinacarbon_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vinacarbon-frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"         
+    environment:
+      - BACKEND_URL=http://backend:8000
+    networks:
+      - vinacarbon_network
+
+networks:
+  vinacarbon_network:
+    driver: bridge
