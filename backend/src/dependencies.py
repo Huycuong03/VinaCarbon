@@ -1,5 +1,6 @@
 import hashlib
 
+from azure.ai.projects.aio import AIProjectClient
 from azure.cosmos.aio import CosmosClient
 from azure.search.documents.aio import SearchClient
 from azure.storage.blob.aio import ContainerClient
@@ -7,7 +8,7 @@ from cachetools import TTLCache
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
-from openai import AsyncAzureOpenAI, AsyncOpenAI
+from openai import AsyncOpenAI
 from src.models import User
 from src.services import *
 from src.settings import SETTINGS
@@ -22,8 +23,11 @@ def verify_token(authorization=Depends(HTTPBearer())):
         )
 
         try:
-            key: str = payload["email"] + SETTINGS.nextauth_secret
-            payload["id"] = hashlib.sha256(key.encode()).hexdigest()
+            if "id" not in payload:
+                key: str = payload["email"] + SETTINGS.nextauth_secret
+                payload["id"] = hashlib.sha256(key.encode()).hexdigest()
+
+            payload["image"] = payload.get("picture")
             request_user = User.model_validate(payload)
             return request_user
         except Exception:
@@ -35,8 +39,7 @@ def verify_token(authorization=Depends(HTTPBearer())):
 
 def get_search_service(request: Request) -> SearchService:
     search_client: SearchClient = request.app.state.search_client
-    text_embedding_client: AsyncAzureOpenAI = request.app.state.text_embedding_client
-    return SearchService(search_client, text_embedding_client)
+    return SearchService(search_client)
 
 
 def get_user_service(request: Request) -> UserService:
@@ -73,3 +76,7 @@ def get_biomass_runtime_estimation_service(
     request: Request,
 ) -> BiomassRuntimeEstimationService:
     return request.app.state.biomass_runtime_estimation_service
+
+
+def get_foundry_project_client(request: Request) -> AIProjectClient:
+    return request.app.state.foundry_project_client

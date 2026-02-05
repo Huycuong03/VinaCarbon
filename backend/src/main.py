@@ -11,8 +11,7 @@ from cachetools import TTLCache
 from ee._helpers import ServiceAccountCredentials
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import AsyncAzureOpenAI
-from src.api import biomass_api
+from src.api import *
 from src.services import (
     BiomassPreliminaryEstimationService,
     BiomassRuntimeEstimationService,
@@ -28,11 +27,6 @@ async def lifespan(app: FastAPI):
             SETTINGS.search_index_name,
             AzureKeyCredential(SETTINGS.search_key),
         ) as search_client,
-        AsyncAzureOpenAI(
-            azure_endpoint=SETTINGS.foundry_text_embedder_endpoint,
-            api_key=SETTINGS.foundry_text_embedder_api_key,
-            api_version=SETTINGS.foundry_text_embedder_api_version,
-        ) as text_embedding_client,
         CosmosClient(SETTINGS.cosmos_endpoint, SETTINGS.cosmos_key) as cosmos_client,
         BlobServiceClient.from_connection_string(
             SETTINGS.blob_storage_connection_string
@@ -61,7 +55,6 @@ async def lifespan(app: FastAPI):
         cache = TTLCache(maxsize=SETTINGS.cache_maxsize, ttl=SETTINGS.cache_ttl)
 
         app.state.search_client = search_client
-        app.state.text_embedding_client = text_embedding_client
         app.state.cosmos_client = cosmos_client
         app.state.blob_client = blob_client
         app.state.blob_container_client = blob_container_client
@@ -90,4 +83,8 @@ app.add_middleware(
     expose_headers=["X-Statistics"],
 )
 
+app.include_router(users_api)
+app.include_router(search_api)
+app.include_router(assistant_api)
+app.include_router(posts_api)
 app.include_router(biomass_api)

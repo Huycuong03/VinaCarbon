@@ -22,12 +22,6 @@ class Settings(BaseSettings):
     foundry_project_endpoint: str
     foundry_agent_name: str
 
-    foundry_text_embedder_name: str
-    foundry_text_embedder_endpoint: str
-    foundry_text_embedder_api_key: str
-    foundry_text_embedder_api_version: str
-    foundry_text_embedder_token_limit: int = 2048
-
     # Microsoft Entra ID
     entra_id_client_id: str
     entra_id_client_secret: str
@@ -39,7 +33,7 @@ class Settings(BaseSettings):
 
     # Preliminary estimation
     preliminary_estimation_list_path: str
-    estimation_area_limit: int = 1_000_000
+    estimation_area_limit: int = 2_000_000
 
     # Cache
     cache_maxsize: int = 1_000
