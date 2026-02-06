@@ -32,7 +32,7 @@ export default function CommunityPage() {
 
         try {
             setLoading(true);
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
                 headers: {
                     "X-Continuation-Token": continuationToken
                 }
@@ -123,7 +123,7 @@ export default function CommunityPage() {
         });
 
         try {
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.POSTS}`, {
                 method: 'POST',
                 body: formData
             });

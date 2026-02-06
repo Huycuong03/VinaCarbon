@@ -6,9 +6,9 @@ import { Heart, MessageSquare, Share2, ChevronLeft, ChevronRight } from "lucide-
 import { UserAvatar } from "./common";
 
 
-import { User, Update } from "@/types/common";
+import { User } from "@/types/common";
 import { Post, Comment } from "@/types/community";
-import { formatDate, formatNumber } from "@/lib/formatters";
+import { formatDate } from "@/lib/formatters";
 import { BACKEND_API_ENDPOINT } from "@/constants";
 
 
@@ -128,7 +128,7 @@ function LikeButton({ post, user }: { post: Post, user?: User }) {
         });
 
         const response = await fetch(
-            `/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/${like.liked ? "unlike" : "like"}`,
+            `/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/${like.liked ? "unlike" : "like"}`,
             {
                 method: "PATCH"
             }
@@ -186,7 +186,7 @@ function CommentSection({ post, user }: { post: Post, user?: User }) {
         }
         setComments(prev => [...prev, newComment]);
 
-        const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/comments`,
+        const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${post.author.id}/posts/${post.id}/comments`,
             {
                 method: "PATCH",
                 headers: {

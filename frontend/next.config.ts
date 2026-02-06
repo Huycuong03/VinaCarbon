@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+
+  basePath: "/vinacarbon",
+  assetPrefix: "/vinacarbon/",
 };
 
 export default nextConfig;

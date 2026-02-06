@@ -57,7 +57,7 @@ export function NavBar() {
                     }}
                 >
                     <div className="w-8 h-8 flex items-center">
-                        <img src="/logo.png"/>
+                        <img src="/vinacarbon/logo.png"/>
                     </div>
                     <span className="font-serif text-2xl font-bold text-forest tracking-tight hidden sm:block">{APP_NAME}</span>
                 </div>

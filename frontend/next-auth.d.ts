@@ -10,6 +10,6 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    userIdHash: string
+    userId: string
   }
 }

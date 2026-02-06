@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
     async function loadProfile() {
         try {
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}`);
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}`);
             const { data, detail }: { data: Profile, detail?: string } = await response.json();
 
             if (response.ok) {
@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
         try {
             setIsLoadingPosts(true);
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}/posts`, {
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}/posts`, {
                 headers: {
                     "X-Continuation-Token": continuationToken
                 }
@@ -126,7 +126,7 @@ export default function ProfilePage() {
         try {
             setFollowed(prev => !prev);
             const response = await fetch(
-                `/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}/${followed ? "unfollow" : "follow"}`,
+                `/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${userId}/${followed ? "unfollow" : "follow"}`,
                 {
                     method: "PATCH"
                 }
@@ -284,7 +284,7 @@ function ProfileEditForm({ profile, setProfile, setIsEditing }: { profile: Profi
         ];
 
         try {
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.USERS}/${profile.id}`,
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.USERS}/${profile.id}`,
                 {
                     method: "PATCH",
                     headers: {

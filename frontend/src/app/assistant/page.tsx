@@ -29,7 +29,7 @@ export default function AssistantPage() {
     async function loadMessages() {
         try {
             setIsLoading(true);
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`);
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`);
             const { data, detail }: { data: Message[], detail?: string } = await response.json();
             if (response.ok) {
                 setMessages([...data].reverse());
@@ -75,7 +75,7 @@ export default function AssistantPage() {
             setInputValue('');
             setIsSending(true);
 
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`,
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`,
                 {
                     method: "POST",
                     headers: {
@@ -132,7 +132,7 @@ export default function AssistantPage() {
             if (messages.length === 0) return;
 
             setIsLoading(true);
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`, { method: "DELETE" });
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.ASSISTANT}`, { method: "DELETE" });
 
             if (response.ok) {
                 setMessages([]);

@@ -59,7 +59,7 @@ export function MapControls({ featureGroup, setStatistics, setLoading }: { featu
 
         try {
             const response = await fetch(
-                `/api/backend${BACKEND_API_ENDPOINT.BIOMASS}/${analysisType}`,
+                `/vinacarbon/api/backend${BACKEND_API_ENDPOINT.BIOMASS}/${analysisType}`,
                 {
                     method: "POST",
                     headers: {

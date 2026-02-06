@@ -7,6 +7,14 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - ./backend/src/ai/models/content-moderator.pkl:/app/src/ai/models/content-moderator.pkl
+      - ./backend/src/ai/models/text-embedder.pkl:/app/src/ai/models/text-embedder.pkl
+      - ./backend/src/ai/models/L2A20M.pt:/app/src/ai/models/L2A20M.pt
+      - ./backend/src/ai/models/L2A60M.pt:/app/src/ai/models/L2A60M.pt
+      - ./backend/src/ai/models/vinacarbon.pth:/app/src/ai/models/vinacarbon.pth
+      - ./backend/preliminary-estimation-list.txt:/app/preliminary-estimation-list.txt
+      - ./backend/private-key.json:/app/private-key.json
     expose:
       - "8000"              
     networks:
@@ -23,9 +31,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "3000:3000"         
-    environment:
-      - BACKEND_URL=http://backend:8000
+      - "8002:3000"         
     networks:
       - vinacarbon_network
 

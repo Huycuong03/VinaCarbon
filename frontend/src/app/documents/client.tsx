@@ -25,7 +25,7 @@ export default function SearchPage() {
     async function searchDocuments(query: string) {
         try {
             setLoading(true);
-            const response = await fetch(`/api/backend${BACKEND_API_ENDPOINT.DOCUMENTS}?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`/vinacarbon/api/backend${BACKEND_API_ENDPOINT.DOCUMENTS}?q=${encodeURIComponent(query)}`);
             const { data, detail}: { data: Document[], detail?: string } = await response.json();
 
             if (response.ok) {

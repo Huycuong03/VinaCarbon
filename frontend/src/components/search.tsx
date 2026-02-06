@@ -31,7 +31,7 @@ export function SearchResultRow({ document }: { document?: Document }) {
 
     return (
         <div
-            onClick={() => router.push(`/documents/${encodeURIComponent(document_url)}?source=search`)}
+            onClick={() => router.push(`${encodeURIComponent(document_url)}?source=search`)}
             className="flex items-center justify-between cursor-pointer bg-white/90 backdrop-blur p-6 rounded-xl hover:shadow-md hover:scale-[1.02] transition-all"
         >
             <div className="flex items-center gap-4 min-w-0">

@@ -3,7 +3,7 @@ import { Inter, Lexend, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
-import SessionProviders from "@/app/providers";
+import SessionProviders from "@/app/session-provider";
 import { NavBar } from "@/components/common";
 
 export const lexend = Lexend({
