@@ -26,9 +26,9 @@ export function MapControls({ featureGroup, setStatistics, setLoading }: { featu
         }
 
         if (isRectangle) {
-            drawTool.current = new L.Draw.Rectangle(map);
+            drawTool.current = new L.Draw.Rectangle(map as any);
         } else {
-            drawTool.current = new L.Draw.Polygon(map);
+            drawTool.current = new L.Draw.Polygon(map as any);
         }
 
         drawTool.current.enable()

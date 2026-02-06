@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     # Others
     carbon_stock_to_biomass_ratio: float = 0.47
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore")
 
 
 SETTINGS = Settings()  # type: ignore
